@@ -4,24 +4,24 @@ const { JWT_SECRET } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Demo credentials — replace with real auth in production
+// Demo credentials — using environment variables for production
 const STAFF_CREDENTIALS = {
     cajero: {
-        password: 'campero2024',
+        password: process.env.CASHIER_PASS || 'campero2024',
         role: 'cashier',
         cashier_id: 'CAJ-001',
         restaurant_id: 'CAMPERO_METROCENTRO_SS',
         restaurant_name: 'SS Metrocentro'
     },
     admin: {
-        password: 'admin2024',
+        password: process.env.ADMIN_PASS || 'admin2024',
         role: 'cashier',
         cashier_id: 'ADM-001',
         restaurant_id: 'CAMPERO_METROCENTRO_SS',
         restaurant_name: 'SS Metrocentro'
     },
     vendedor: {
-        password: 'vendedor2024',
+        password: process.env.VENDOR_PASS || 'vendedor2024',
         role: 'vendor',
         vendor_id: 'VEND-001',
         company_name: 'Tigo El Salvador',
