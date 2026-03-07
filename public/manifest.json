@@ -1,0 +1,17 @@
+{
+    "name": "Pollo Campero — Canje de Vales",
+    "short_name": "Campero Canje",
+    "description": "Sistema de Canje de Vales QR para restaurantes Pollo Campero El Salvador",
+    "start_url": "/",
+    "display": "standalone",
+    "orientation": "portrait",
+    "background_color": "#0F0F12",
+    "theme_color": "#C62828",
+    "icons": [
+        {
+            "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐔</text></svg>",
+            "sizes": "any",
+            "type": "image/svg+xml"
+        }
+    ]
+}

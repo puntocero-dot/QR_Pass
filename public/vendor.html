@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Portal de Vendedor — Generación de Vales QR | Pollo Campero El Salvador">
+    <meta name="theme-color" content="#C62828">
+    <title>Pollo Campero — Portal Vendedor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        /* ── Vendor-specific styles ──────────────── */
+        /* Tab Navigation */
+        .vendor-tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: var(--space-lg);
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            padding: 4px;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .vendor-tab {
+            flex: 1;
+            padding: 12px 16px;
+            border: none;
+            border-radius: var(--radius-md);
+            background: transparent;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: var(--transition-fast);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-xs);
+        }
+
+        .vendor-tab:hover {
+            color: var(--text-primary);
+        }
+
+        .vendor-tab.active {
+            background: linear-gradient(135deg, var(--red-700), var(--red-800));
+            color: white;
+            box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
+        }
+
+        .vendor-container {
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: var(--space-lg) var(--space-md);
+        }
+
+        .vendor-title {
+            font-size: 1.3rem;
+            font-weight: 800;
+            margin-bottom: var(--space-lg);
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+
+        .vendor-title svg {
+            color: var(--orange-500);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: var(--space-md);
+            margin-bottom: var(--space-xl);
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: var(--space-md);
+            text-align: center;
+            transition: var(--transition-fast);
+        }
+
+        .stat-card:hover {
+            border-color: var(--red-500);
+            transform: translateY(-2px);
+        }
+
+        .stat-card .stat-number {
+            font-size: 1.8rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--red-400), var(--orange-400));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-card .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-top: 4px;
+        }
+
+        /* Create Form */
+        .create-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-xl);
+            padding: var(--space-lg);
+            margin-bottom: var(--space-xl);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .create-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--orange-500), var(--yellow-500), var(--red-500));
+        }
+
+        .create-section h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: var(--space-md);
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: var(--space-md);
+            margin-bottom: var(--space-md);
+        }
+
+        .form-grid .input-group label {
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .form-grid select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-md);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 1rem;
+            outline: none;
+            transition: var(--transition-fast);
+            cursor: pointer;
+        }
+
+        .form-grid select:focus {
+            border-color: var(--red-500);
+            box-shadow: 0 0 0 3px rgba(244, 67, 54, 0.15);
+        }
+
+        .form-grid select option {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        /* Voucher List */
+        .voucher-list-section h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: var(--space-md);
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+
+        .voucher-table-wrap {
+            overflow-x: auto;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-subtle);
+        }
+
+        .voucher-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        .voucher-table th {
+            background: var(--bg-card);
+            padding: 12px 14px;
+            text-align: left;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 0.06em;
+            white-space: nowrap;
+            border-bottom: 1px solid var(--border-medium);
+        }
+
+        .voucher-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border-subtle);
+            white-space: nowrap;
+        }
+
+        .voucher-table tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .voucher-table .status-active {
+            color: var(--success);
+            font-weight: 700;
+        }
+
+        .voucher-table .status-expired {
+            color: var(--error);
+            font-weight: 700;
+        }
+
+        .voucher-table .status-used {
+            color: var(--warning);
+            font-weight: 700;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.75rem;
+            border-radius: var(--radius-sm);
+        }
+
+        /* QR Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 500;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.2s ease-out;
+            padding: var(--space-md);
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-xl);
+            padding: var(--space-xl);
+            max-width: 480px;
+            width: 100%;
+            max-height: 85vh;
+            overflow-y: auto;
+            animation: cardSlideUp 0.3s ease-out;
+            text-align: center;
+        }
+
+        .modal-content h3 {
+            font-size: 1.1rem;
+            font-weight: 800;
+            margin-bottom: var(--space-md);
+        }
+
+        .qr-display {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
+            margin: var(--space-md) auto;
+            display: inline-block;
+        }
+
+        .qr-display img {
+            display: block;
+            image-rendering: pixelated;
+        }
+
+        .qr-payload-text {
+            font-family: monospace;
+            font-size: 0.65rem;
+            color: var(--text-tertiary);
+            word-break: break-all;
+            background: var(--bg-card);
+            padding: var(--space-sm) var(--space-md);
+            border-radius: var(--radius-sm);
+            margin-top: var(--space-md);
+            line-height: 1.4;
+            text-align: left;
+        }
+
+        .qr-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-top: var(--space-md);
+            font-size: 0.85rem;
+        }
+
+        .qr-meta span {
+            color: var(--text-secondary);
+        }
+
+        .qr-meta strong {
+            color: var(--text-primary);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: var(--space-sm);
+            margin-top: var(--space-lg);
+            justify-content: center;
+        }
+
+        /* Batch Created Result */
+        .batch-result {
+            background: var(--bg-card);
+            border: 1px solid rgba(76, 175, 80, 0.3);
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
+            margin-bottom: var(--space-xl);
+            animation: cardSlideUp 0.4s ease-out;
+        }
+
+        .batch-result h3 {
+            color: var(--success);
+            font-size: 1rem;
+            margin-bottom: var(--space-md);
+        }
+
+        .batch-qr-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: var(--space-md);
+            margin-top: var(--space-md);
+        }
+
+        .batch-qr-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: var(--space-md);
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+
+        .batch-qr-card:hover {
+            border-color: var(--red-400);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .batch-qr-card img {
+            display: block;
+            margin: 0 auto var(--space-sm);
+            image-rendering: pixelated;
+        }
+
+        .batch-qr-card .card-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+        }
+
+        .batch-qr-card .card-value {
+            font-size: 1.1rem;
+            font-weight: 900;
+            color: var(--success);
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                background: white !important;
+                color: black !important;
+            }
+
+            .header,
+            .create-section,
+            .stats-grid,
+            .voucher-list-section,
+            .modal-overlay,
+            .btn,
+            #toast-container,
+            .vendor-tabs {
+                display: none !important;
+            }
+
+            .batch-result {
+                border: 2px solid #ccc;
+                break-inside: avoid;
+            }
+
+            .batch-qr-card {
+                border: 1px solid #999;
+                break-inside: avoid;
+            }
+
+            .batch-qr-card .card-label {
+                color: #333;
+            }
+
+            .batch-qr-card .card-value {
+                color: #000;
+                -webkit-text-fill-color: #000;
+            }
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: var(--space-2xl);
+            color: var(--text-tertiary);
+        }
+
+        .empty-state svg {
+            margin-bottom: var(--space-md);
+            opacity: 0.3;
+        }
+
+        /* Tab content */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Client Management */
+        .client-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: var(--space-md);
+        }
+
+        .client-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
+            transition: var(--transition-fast);
+            cursor: pointer;
+        }
+
+        .client-card:hover {
+            border-color: var(--orange-500);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .client-card h4 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: var(--space-sm);
+        }
+
+        .client-card .client-detail {
+            font-size: 0.8rem;
+            color: var(--text-tertiary);
+            margin-bottom: 4px;
+            display: flex;
+            gap: var(--space-xs);
+        }
+
+        .client-card .client-stats {
+            display: flex;
+            gap: var(--space-md);
+            margin-top: var(--space-md);
+            padding-top: var(--space-sm);
+            border-top: 1px solid var(--border-subtle);
+            font-size: 0.75rem;
+        }
+
+        .client-card .client-stats span {
+            color: var(--text-tertiary);
+        }
+
+        .client-card .client-stats strong {
+            color: var(--orange-400);
+        }
+
+        .client-form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-md);
+        }
+
+        .client-form-grid .full-width {
+            grid-column: span 2;
+        }
+
+        @media (max-width: 600px) {
+            .client-form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .client-form-grid .full-width {
+                grid-column: span 1;
+            }
+        }
+
+        /* Client Modal */
+        .client-modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 500;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.2s ease-out;
+            padding: var(--space-md);
+        }
+
+        .client-modal-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-xl);
+            padding: var(--space-xl);
+            max-width: 560px;
+            width: 100%;
+            max-height: 85vh;
+            overflow-y: auto;
+            animation: cardSlideUp 0.3s ease-out;
+        }
+
+        .client-modal-content h3 {
+            font-size: 1.1rem;
+            font-weight: 800;
+            margin-bottom: var(--space-lg);
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+
+        <!-- ─── Header ─── -->
+        <header id="app-header" class="header hidden">
+            <div class="header-left">
+                <div class="logo">
+                    <span class="logo-icon">🐔</span>
+                    <span class="logo-text">Campero</span>
+                </div>
+            </div>
+            <div class="header-center">
+                <span class="restaurant-badge"
+                    style="background: rgba(255,152,0,0.15); border: 1px solid rgba(255,152,0,0.3);">
+                    <span>🏢</span>
+                    <span id="vendor-company-name">Portal Vendedor</span>
+                </span>
+            </div>
+            <div class="header-right">
+                <button id="btn-logout" class="btn-icon" title="Cerrar Sesión">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                        <polyline points="16 17 21 12 16 7" />
+                        <line x1="21" y1="12" x2="9" y2="12" />
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- ─── Login View ─── -->
+        <section id="view-login" class="view active">
+            <div class="login-container">
+                <div class="login-hero">
+                    <div class="hero-glow"></div>
+                    <span class="hero-icon">🏢</span>
+                    <h1>Portal Vendedor</h1>
+                    <p class="hero-subtitle">Generación de Vales QR — Pollo Campero</p>
+                </div>
+                <form id="login-form" class="login-form" autocomplete="off">
+                    <div class="input-group">
+                        <label for="login-user">Usuario Vendedor</label>
+                        <input type="text" id="login-user" placeholder="Ej: vendedor" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="login-pass">Contraseña</label>
+                        <input type="password" id="login-pass" placeholder="••••••••" required>
+                    </div>
+                    <button type="submit" id="btn-login" class="btn btn-primary btn-lg"
+                        style="background: linear-gradient(135deg, var(--orange-500), var(--orange-600));">
+                        <span class="btn-text">Ingresar al Portal</span>
+                        <span class="btn-loader hidden"></span>
+                    </button>
+                    <p id="login-error" class="error-msg hidden"></p>
+                </form>
+            </div>
+        </section>
+
+        <!-- ─── Dashboard View ─── -->
+        <section id="view-dashboard" class="view">
+            <div class="vendor-container">
+
+                <div class="vendor-title">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7" />
+                        <rect x="14" y="3" width="7" height="7" />
+                        <rect x="14" y="14" width="7" height="7" />
+                        <rect x="3" y="14" width="7" height="7" />
+                    </svg>
+                    Panel de Vendedor
+                </div>
+
+                <div id="stats-grid" class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="stat-total">0</div>
+                        <div class="stat-label">Total Vales</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="stat-active">0</div>
+                        <div class="stat-label">Activos</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="stat-expired">0</div>
+                        <div class="stat-label">Vencidos</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="stat-redeemed">$0</div>
+                        <div class="stat-label">Canjeado</div>
+                    </div>
+                </div>
+
+                <!-- Tab Navigation -->
+                <div class="vendor-tabs">
+                    <button class="vendor-tab active" data-tab="vouchers">🎫 Vales</button>
+                    <button class="vendor-tab" data-tab="clients">🏢 Clientes</button>
+                </div>
+
+                <!-- ═══ Tab: Vouchers ═══ -->
+                <div id="tab-vouchers" class="tab-content active">
+                    <div class="create-section">
+                        <h3>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19" />
+                                <line x1="5" y1="12" x2="19" y2="12" />
+                            </svg>
+                            Generar Nuevos Vales
+                        </h3>
+                        <form id="create-form">
+                            <div class="form-grid">
+                                <div class="input-group">
+                                    <label for="create-client">Cliente</label>
+                                    <select id="create-client">
+                                        <option value="">— Sin Asignar —</option>
+                                    </select>
+                                </div>
+                                <div class="input-group">
+                                    <label for="create-value">Valor por Vale (USD)</label>
+                                    <input type="number" id="create-value" step="0.01" min="0.01" max="10000"
+                                        placeholder="25.00" required>
+                                </div>
+                                <div class="input-group">
+                                    <label for="create-qty">Cantidad</label>
+                                    <input type="number" id="create-qty" min="1" max="500" value="1" placeholder="1"
+                                        required>
+                                </div>
+                                <div class="input-group">
+                                    <label for="create-expiry">Días de Vigencia</label>
+                                    <input type="number" id="create-expiry" min="1" max="3650" value="365"
+                                        placeholder="365" required>
+                                </div>
+                                <div class="input-group">
+                                    <label for="create-type">Tipo de Uso</label>
+                                    <select id="create-type">
+                                        <option value="Multiple">Múltiple (varias redenciones)</option>
+                                        <option value="Single">Único (una sola redención)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button type="submit" id="btn-create" class="btn btn-danger btn-lg" style="width:100%;">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="7" height="7" />
+                                    <rect x="14" y="3" width="7" height="7" />
+                                    <rect x="14" y="14" width="7" height="7" />
+                                    <rect x="3" y="14" width="7" height="7" />
+                                </svg>
+                                GENERAR VALES CON QR ÚNICOS
+                            </button>
+                        </form>
+                    </div>
+
+                    <div id="batch-result" class="batch-result hidden">
+                        <h3 id="batch-title">✅ Vales Creados</h3>
+                        <p id="batch-summary"
+                            style="color:var(--text-secondary); font-size:0.9rem; margin-bottom: var(--space-sm);"></p>
+                        <button id="btn-print-batch" class="btn btn-secondary btn-sm"
+                            style="margin-bottom: var(--space-md);">🖨️ Imprimir QR's</button>
+                        <div id="batch-qr-grid" class="batch-qr-grid"></div>
+                    </div>
+
+                    <div class="voucher-list-section">
+                        <h3>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="8" y1="6" x2="21" y2="6" />
+                                <line x1="8" y1="12" x2="21" y2="12" />
+                                <line x1="8" y1="18" x2="21" y2="18" />
+                                <line x1="3" y1="6" x2="3.01" y2="6" />
+                                <line x1="3" y1="12" x2="3.01" y2="12" />
+                                <line x1="3" y1="18" x2="3.01" y2="18" />
+                            </svg>
+                            Mis Vales Generados
+                        </h3>
+                        <div id="voucher-list-container">
+                            <div class="empty-state" id="empty-state">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="1.5">
+                                    <rect x="3" y="3" width="7" height="7" />
+                                    <rect x="14" y="3" width="7" height="7" />
+                                    <rect x="14" y="14" width="7" height="7" />
+                                    <rect x="3" y="14" width="7" height="7" />
+                                </svg>
+                                <p>No hay vales generados aún.<br>Use el formulario arriba para crear nuevos vales.</p>
+                            </div>
+                            <div class="voucher-table-wrap hidden" id="voucher-table-wrap">
+                                <table class="voucher-table">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Cliente</th>
+                                            <th>Valor</th>
+                                            <th>Saldo</th>
+                                            <th>Estado</th>
+                                            <th>Vencimiento</th>
+                                            <th>Tipo</th>
+                                            <th>Acción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="voucher-table-body"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═══ Tab: Clients ═══ -->
+                <div id="tab-clients" class="tab-content">
+                    <div class="create-section">
+                        <h3>🏢 Gestión de Clientes</h3>
+                        <p style="color:var(--text-secondary); font-size:0.85rem; margin-bottom:var(--space-md)">
+                            Registre las empresas a las que les vende vales para rastrear sus tickets.</p>
+                        <button id="btn-new-client" class="btn btn-danger" style="width:100%">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="5" x2="12" y2="19" />
+                                <line x1="5" y1="12" x2="19" y2="12" />
+                            </svg>
+                            Agregar Nuevo Cliente
+                        </button>
+                    </div>
+                    <div id="clients-list" class="client-cards" style="margin-top:var(--space-lg)">
+                        <div class="empty-state" id="clients-empty">
+                            <p>No hay clientes registrados aún.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </div>
+
+    <!-- QR Modal -->
+    <div id="qr-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3 id="modal-title">Código QR del Vale</h3>
+            <div class="qr-display" id="modal-qr-display"></div>
+            <div class="qr-meta">
+                <span>Valor: <strong id="modal-value">—</strong></span>
+                <span>Vencimiento: <strong id="modal-expiry">—</strong></span>
+                <span>Tipo: <strong id="modal-type">—</strong></span>
+            </div>
+            <div class="qr-payload-text" id="modal-payload-text"></div>
+            <div class="modal-actions">
+                <button id="btn-copy-qr" class="btn btn-secondary btn-sm">📋 Copiar Código</button>
+                <button id="btn-close-modal" class="btn btn-ghost btn-sm">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Client Create/Edit Modal -->
+    <div id="client-modal" class="client-modal-overlay hidden">
+        <div class="client-modal-content">
+            <h3 id="client-modal-title">🏢 Nuevo Cliente</h3>
+            <form id="client-form">
+                <input type="hidden" id="client-edit-id">
+                <div class="client-form-grid">
+                    <div class="input-group"><label for="client-name">Nombre / Razón Social *</label><input type="text"
+                            id="client-name" placeholder="Ej: Tigo El Salvador" required></div>
+                    <div class="input-group"><label for="client-trade-name">Nombre Comercial</label><input type="text"
+                            id="client-trade-name" placeholder="Ej: Tigo"></div>
+                    <div class="input-group"><label for="client-tax-id">NIT / NRC</label><input type="text"
+                            id="client-tax-id" placeholder="0000-000000-000-0"></div>
+                    <div class="input-group"><label for="client-email">Email</label><input type="email"
+                            id="client-email" placeholder="contacto@empresa.com"></div>
+                    <div class="input-group"><label for="client-phone">Teléfono</label><input type="tel"
+                            id="client-phone" placeholder="+503 0000-0000"></div>
+                    <div class="input-group"><label for="client-contact">Persona de Contacto</label><input type="text"
+                            id="client-contact" placeholder="Nombre completo"></div>
+                    <div class="input-group full-width"><label for="client-address">Dirección</label><input type="text"
+                            id="client-address" placeholder="Dirección fiscal"></div>
+                    <div class="input-group full-width"><label for="client-notes">Notas</label><input type="text"
+                            id="client-notes" placeholder="Notas adicionales (opcional)"></div>
+                </div>
+                <div style="display:flex; gap:var(--space-sm); margin-top:var(--space-lg)">
+                    <button type="submit" class="btn btn-danger" style="flex:1">Guardar Cliente</button>
+                    <button type="button" id="btn-cancel-client" class="btn btn-ghost">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- QR Code generation library (browser-native) -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+    <script src="/js/vendor.js"></script>
+</body>
+
+</html>

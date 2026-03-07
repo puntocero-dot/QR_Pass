@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="Sistema de Canje de Vales — Pollo Campero El Salvador">
+  <meta name="theme-color" content="#C62828">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Pollo Campero — Canje de Vales</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+  <!-- ═══ App Shell ═══ -->
+  <div id="app">
+
+    <!-- ─── Header ─── -->
+    <header id="app-header" class="header hidden">
+      <div class="header-left">
+        <div class="logo">
+          <span class="logo-icon">🐔</span>
+          <span class="logo-text">Campero</span>
+        </div>
+      </div>
+      <div class="header-center">
+        <span id="restaurant-badge" class="restaurant-badge">
+          <span class="badge-flag">🇸🇻</span>
+          <span id="restaurant-name">—</span>
+        </span>
+      </div>
+      <div class="header-right">
+        <button id="btn-logout" class="btn-icon" title="Cerrar Sesión">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- ─── Login View ─── -->
+    <section id="view-login" class="view active">
+      <div class="login-container">
+        <div class="login-hero">
+          <div class="hero-glow"></div>
+          <span class="hero-icon">🐔</span>
+          <h1>Pollo Campero</h1>
+          <p class="hero-subtitle">Sistema de Canje de Vales</p>
+        </div>
+        <form id="login-form" class="login-form" autocomplete="off">
+          <div class="input-group">
+            <label for="login-user">Usuario</label>
+            <input type="text" id="login-user" placeholder="Ej: cajero" required autocomplete="username">
+          </div>
+          <div class="input-group">
+            <label for="login-pass">Contraseña</label>
+            <input type="password" id="login-pass" placeholder="••••••••" required autocomplete="current-password">
+          </div>
+          <button type="submit" id="btn-login" class="btn btn-primary btn-lg">
+            <span class="btn-text">Iniciar Sesión</span>
+            <span class="btn-loader hidden"></span>
+          </button>
+          <p id="login-error" class="error-msg hidden"></p>
+        </form>
+      </div>
+    </section>
+
+    <!-- ─── Scanner View ─── -->
+    <section id="view-scanner" class="view">
+      <div class="scanner-container">
+        <div class="section-header">
+          <h2>Escanear Vale</h2>
+          <p>Apunte la cámara al código QR del cliente</p>
+        </div>
+
+        <div id="scanner-box" class="scanner-box">
+          <div id="qr-reader" class="qr-reader"></div>
+          <div class="scanner-overlay">
+            <div class="scanner-corners"></div>
+          </div>
+        </div>
+
+        <div class="scanner-divider">
+          <span>o ingrese el código manualmente</span>
+        </div>
+
+        <div class="manual-input-group">
+          <input type="text" id="manual-code" class="input-manual" placeholder="Pegar código QR aquí...">
+          <button id="btn-manual-validate" class="btn btn-secondary">
+            Validar
+          </button>
+        </div>
+
+        <div id="scanner-status" class="scanner-status">
+          <span class="status-dot pulse"></span>
+          <span>Escáner listo</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Voucher Detail View ─── -->
+    <section id="view-voucher" class="view">
+      <div class="voucher-container">
+
+        <!-- Voucher Card -->
+        <div id="voucher-card" class="voucher-card">
+          <div class="voucher-card-header">
+            <span class="voucher-tag" id="voucher-tag">VALE</span>
+            <span class="voucher-company" id="voucher-company">—</span>
+          </div>
+
+          <div class="voucher-stats">
+            <div class="stat-block stat-balance">
+              <span class="stat-label">Saldo Disponible</span>
+              <span class="stat-value" id="voucher-balance">$0.00</span>
+            </div>
+            <div class="stat-block stat-expiry">
+              <span class="stat-label">Válido Hasta</span>
+              <span class="stat-value" id="voucher-expiry">—</span>
+            </div>
+          </div>
+
+          <div class="voucher-progress">
+            <div class="progress-bar">
+              <div class="progress-fill" id="voucher-progress-fill"></div>
+            </div>
+            <div class="progress-labels">
+              <span id="voucher-used">Usado: $0.00</span>
+              <span id="voucher-initial">Total: $0.00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Status Badges -->
+        <div class="voucher-badges">
+          <span class="badge badge-ok" id="badge-balance">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            Saldo OK
+          </span>
+          <span class="badge badge-ok" id="badge-expiry">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            Fecha Vigente
+          </span>
+          <span class="badge badge-ok" id="badge-signature">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            Firma Válida
+          </span>
+        </div>
+
+        <!-- Redeem Section -->
+        <div class="redeem-section">
+          <div class="input-group">
+            <label for="redeem-amount">Monto a Canjear (USD)</label>
+            <div class="amount-input-wrapper">
+              <span class="currency-symbol">$</span>
+              <input type="number" id="redeem-amount" class="input-amount" placeholder="0.00" step="0.01" min="0.01">
+            </div>
+          </div>
+          <button id="btn-redeem" class="btn btn-danger btn-lg">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+            </svg>
+            <span>CANJEAR</span>
+          </button>
+          <button id="btn-consult-only" class="btn btn-ghost">
+            Solo Consulta — Volver a Escanear
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Result View ─── -->
+    <section id="view-result" class="view">
+      <div class="result-container">
+        <div id="result-icon" class="result-icon result-success">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        </div>
+        <h2 id="result-title">¡Canje Exitoso!</h2>
+        <p id="result-message" class="result-message">El saldo ha sido actualizado correctamente.</p>
+
+        <div id="result-details" class="result-details">
+          <div class="detail-row">
+            <span>Monto Canjeado</span>
+            <strong id="result-amount">$0.00</strong>
+          </div>
+          <div class="detail-row">
+            <span>Nuevo Saldo</span>
+            <strong id="result-new-balance">$0.00</strong>
+          </div>
+          <div class="detail-row">
+            <span>Restaurante</span>
+            <strong id="result-restaurant">—</strong>
+          </div>
+          <div class="detail-row">
+            <span>Cajero</span>
+            <strong id="result-cashier">—</strong>
+          </div>
+          <div class="detail-row">
+            <span>Fecha/Hora</span>
+            <strong id="result-timestamp">—</strong>
+          </div>
+        </div>
+
+        <button id="btn-new-scan" class="btn btn-primary btn-lg">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7" />
+            <rect x="14" y="3" width="7" height="7" />
+            <rect x="14" y="14" width="7" height="7" />
+            <rect x="3" y="14" width="7" height="7" />
+          </svg>
+          Escanear Nuevo Vale
+        </button>
+      </div>
+    </section>
+
+    <!-- ─── Error View ─── -->
+    <section id="view-error" class="view">
+      <div class="result-container">
+        <div class="result-icon result-error">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="15" y1="9" x2="9" y2="15" />
+            <line x1="9" y1="9" x2="15" y2="15" />
+          </svg>
+        </div>
+        <h2 id="error-title">Error de Validación</h2>
+        <p id="error-message" class="result-message">—</p>
+        <p id="error-step" class="error-step"></p>
+
+        <button id="btn-error-retry" class="btn btn-primary btn-lg">
+          Volver a Escanear
+        </button>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Confirm Modal -->
+  <div id="confirm-modal" class="confirm-overlay hidden">
+    <div class="confirm-dialog">
+      <div class="confirm-icon">💳</div>
+      <h3 id="confirm-title">Confirmar Canje</h3>
+      <div id="confirm-body" class="confirm-body"></div>
+      <div class="confirm-actions">
+        <button id="btn-confirm-cancel" class="btn btn-ghost">Cancelar</button>
+        <button id="btn-confirm-ok" class="btn btn-danger">Confirmar Canje</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+
+</html>

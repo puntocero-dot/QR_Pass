@@ -1,0 +1,20 @@
+{
+  "name": "campero-voucher-pwa",
+  "version": "1.0.0",
+  "description": "Pollo Campero El Salvador - Voucher Redemption PWA",
+  "main": "server/server.js",
+  "scripts": {
+    "dev": "node server/server.js",
+    "start": "node server/server.js",
+    "seed": "node server/seed.js"
+  },
+  "keywords": ["campero", "voucher", "pwa", "qr"],
+  "license": "ISC",
+  "dependencies": {
+    "better-sqlite3": "^11.0.0",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "uuid": "^9.0.0"
+  }
+}
