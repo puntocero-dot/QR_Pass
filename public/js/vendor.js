@@ -7,8 +7,8 @@
 
     // ── State ────────────────────────────────────
     const state = {
-        token: localStorage.getItem('campero_vendor_token') || null,
-        user: JSON.parse(localStorage.getItem('campero_vendor_user') || 'null'),
+        token: localStorage.getItem('campero_token') || null,
+        user: JSON.parse(localStorage.getItem('campero_user') || 'null'),
         vouchers: [],
         clients: [],
         lastBatch: null
@@ -18,7 +18,6 @@
     const $$ = (sel) => document.querySelectorAll(sel);
 
     const views = {
-        login: $('#view-login'),
         dashboard: $('#view-dashboard')
     };
 
@@ -26,21 +25,25 @@
 
     // ── Init ─────────────────────────────────────
     function init() {
-        bindEvents();
-
-        if (state.token && state.user) {
-            showDashboard();
-        } else {
-            showView('login');
+        // Redirection check: must be logged in as vendor
+        if (!state.token || !state.user || state.user.role !== 'vendor') {
+            console.log('Unauthorized access to vendor portal. Redirecting to login...');
+            window.location.href = '/index.html';
+            return;
         }
+
+        bindEvents();
+        showDashboard();
     }
 
     function showView(name) {
         Object.values(views).forEach(v => v.classList.remove('active'));
-        views[name].classList.add('active');
-        views[name].style.animation = 'none';
-        views[name].offsetHeight;
-        views[name].style.animation = '';
+        if (views[name]) {
+            views[name].classList.add('active');
+            views[name].style.animation = 'none';
+            views[name].offsetHeight;
+            views[name].style.animation = '';
+        }
     }
 
     function showDashboard() {
@@ -55,7 +58,6 @@
 
     // ── Events ───────────────────────────────────
     function bindEvents() {
-        $('#login-form').addEventListener('submit', handleLogin);
         $('#btn-logout').addEventListener('click', handleLogout);
         $('#create-form').addEventListener('submit', handleCreate);
         $('#btn-close-modal').addEventListener('click', closeModal);
@@ -86,61 +88,12 @@
         });
     }
 
-    // ── Login ────────────────────────────────────
-    async function handleLogin(e) {
-        e.preventDefault();
-        const username = $('#login-user').value.trim();
-        const password = $('#login-pass').value;
-        const errorEl = $('#login-error');
-        const btnText = $('#btn-login .btn-text');
-        const btnLoader = $('#btn-login .btn-loader');
-
-        errorEl.classList.add('hidden');
-        btnText.textContent = 'Autenticando...';
-        btnLoader.classList.remove('hidden');
-        $('#btn-login').disabled = true;
-
-        try {
-            const res = await apiCall('/api/auth/login', {
-                method: 'POST',
-                body: JSON.stringify({ username, password })
-            });
-
-            if (res.success) {
-                if (res.user.role !== 'vendor') {
-                    errorEl.textContent = 'Este portal es solo para vendedores. Use /index.html para cajeros.';
-                    errorEl.classList.remove('hidden');
-                    return;
-                }
-
-                state.token = res.token;
-                state.user = res.user;
-                localStorage.setItem('campero_vendor_token', res.token);
-                localStorage.setItem('campero_vendor_user', JSON.stringify(res.user));
-                showDashboard();
-                showToast('Sesión iniciada correctamente', 'success');
-            } else {
-                errorEl.textContent = res.error || 'Error de autenticación';
-                errorEl.classList.remove('hidden');
-            }
-        } catch (err) {
-            errorEl.textContent = 'Error de conexión — Intente de nuevo';
-            errorEl.classList.remove('hidden');
-        } finally {
-            btnText.textContent = 'Ingresar al Portal';
-            btnLoader.classList.add('hidden');
-            $('#btn-login').disabled = false;
-        }
-    }
-
     function handleLogout() {
         state.token = null;
         state.user = null;
-        localStorage.removeItem('campero_vendor_token');
-        localStorage.removeItem('campero_vendor_user');
-        header.classList.add('hidden');
-        showView('login');
-        showToast('Sesión cerrada', 'info');
+        localStorage.removeItem('campero_token');
+        localStorage.removeItem('campero_user');
+        window.location.href = '/index.html';
     }
 
     // ── Load Vouchers ────────────────────────────

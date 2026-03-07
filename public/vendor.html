@@ -582,32 +582,11 @@
             </div>
         </header>
 
-        <!-- ─── Login View ─── -->
-        <section id="view-login" class="view active">
-            <div class="login-container">
-                <div class="login-hero">
-                    <div class="hero-glow"></div>
-                    <span class="hero-icon">🏢</span>
-                    <h1>Portal Vendedor</h1>
-                    <p class="hero-subtitle">Generación de Vales QR — Pollo Campero</p>
-                </div>
-                <form id="login-form" class="login-form" autocomplete="off">
-                    <div class="input-group">
-                        <label for="login-user">Usuario Vendedor</label>
-                        <input type="text" id="login-user" placeholder="Ej: vendedor" required>
-                    </div>
-                    <div class="input-group">
-                        <label for="login-pass">Contraseña</label>
-                        <input type="password" id="login-pass" placeholder="••••••••" required>
-                    </div>
-                    <button type="submit" id="btn-login" class="btn btn-primary btn-lg"
-                        style="background: linear-gradient(135deg, var(--orange-500), var(--orange-600));">
-                        <span class="btn-text">Ingresar al Portal</span>
-                        <span class="btn-loader hidden"></span>
-                    </button>
-                    <p id="login-error" class="error-msg hidden"></p>
-                </form>
-            </div>
+        <!-- ─── Session Check ─── -->
+        <section id="view-checking" class="view active"
+            style="display:flex; align-items:center; justify-content:center; height:100vh; flex-direction:column; gap:20px;">
+            <div class="btn-loader" style="width:40px; height:40px; border-width:4px;"></div>
+            <p style="color:var(--text-secondary); font-weight:500;">Verificando sesión...</p>
         </section>
 
         <!-- ─── Dashboard View ─── -->

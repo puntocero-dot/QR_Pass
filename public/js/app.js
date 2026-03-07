@@ -143,12 +143,13 @@
             if (res.success) {
                 state.token = res.token;
                 state.user = res.user;
+                // Unified keys for both portals
                 localStorage.setItem('campero_token', res.token);
                 localStorage.setItem('campero_user', JSON.stringify(res.user));
 
-                if (res.user.role !== 'cashier') {
-                    errorEl.textContent = 'Este portal es solo para cajeros. Use /vendor.html para ventas.';
-                    errorEl.classList.remove('hidden');
+                if (res.user.role === 'vendor') {
+                    showToast('Redirigiendo a Portal de Ventas...', 'success');
+                    setTimeout(() => window.location.href = '/vendor.html', 800);
                     return;
                 }
 
