@@ -18,6 +18,7 @@
     const $$ = (sel) => document.querySelectorAll(sel);
 
     const views = {
+        checking: $('#view-checking'),
         dashboard: $('#view-dashboard')
     };
 
