@@ -47,6 +47,15 @@ router.post('/login', (req, res) => {
 
     const staff = STAFF_CREDENTIALS[username.toLowerCase()];
 
+    // DEBUG: Logging login attempt details (passwords hidden/masked)
+    console.log(`Login attempt for: ${username}`);
+    if (staff) {
+        const passSet = !!staff.password;
+        console.log(`User found. Pass set: ${passSet}. Pass length: ${staff.password ? staff.password.length : 0}`);
+    } else {
+        console.log(`User NOT found: ${username}`);
+    }
+
     if (!staff || staff.password !== password) {
         return res.status(401).json({
             success: false,

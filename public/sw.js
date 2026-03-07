@@ -1,9 +1,11 @@
-const CACHE_NAME = 'campero-canje-v1';
+const CACHE_NAME = 'campero-canje-v2';
 const STATIC_ASSETS = [
     '/',
     '/index.html',
+    '/vendor.html',
     '/css/style.css',
     '/js/app.js',
+    '/js/vendor.js',
     '/manifest.json'
 ];
 
