@@ -56,7 +56,11 @@ router.post('/login', (req, res) => {
         console.log(`User NOT found: ${username}`);
     }
 
-    if (!staff || staff.password !== password) {
+    // Correct comparison with trimmed passwords
+    const receivedPass = password ? password.trim() : '';
+    const expectedPass = (staff && staff.password) ? staff.password.trim() : '';
+
+    if (!staff || expectedPass !== receivedPass) {
         return res.status(401).json({
             success: false,
             error: 'Credenciales incorrectas',

@@ -146,6 +146,12 @@
                 localStorage.setItem('campero_token', res.token);
                 localStorage.setItem('campero_user', JSON.stringify(res.user));
 
+                if (res.user.role !== 'cashier') {
+                    errorEl.textContent = 'Este portal es solo para cajeros. Use /vendor.html para ventas.';
+                    errorEl.classList.remove('hidden');
+                    return;
+                }
+
                 showHeader();
                 updateRestaurantName();
                 showView('scanner');
