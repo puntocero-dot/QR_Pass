@@ -104,6 +104,109 @@
         $('#profile-modal').addEventListener('click', (e) => {
             if (e.target.id === 'profile-modal') closeProfileModal();
         });
+
+        // Bulk creation
+        $('#btn-open-bulk').addEventListener('click', openBulkModal);
+        $('#btn-cancel-bulk').addEventListener('click', closeBulkModal);
+        $('#bulk-file').addEventListener('change', handleBulkFile);
+        $('#btn-process-bulk').addEventListener('click', processBulk);
+    }
+
+    function openBulkModal() {
+        const select = $('#bulk-client');
+        select.innerHTML = '<option value="">— Sin Asignar —</option>';
+        state.clients.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.id;
+            opt.textContent = c.name;
+            select.appendChild(opt);
+        });
+        $('#bulk-modal').classList.remove('hidden');
+    }
+
+    function closeBulkModal() {
+        $('#bulk-modal').classList.add('hidden');
+        $('#bulk-file').value = '';
+        $('#bulk-preview').classList.add('hidden');
+        $('#btn-process-bulk').disabled = true;
+        state._bulkData = null;
+    }
+
+    async function handleBulkFile(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const text = e.target.result;
+            const rows = text.split('\n').map(r => r.split(',').map(c => c.trim()));
+            // columns: nombre, contacto
+            const data = rows.filter(r => r[0] && r[0].toLowerCase() !== 'nombre').map(r => ({
+                name: r[0],
+                contact: r[1] || ''
+            }));
+
+            if (data.length > 0) {
+                state._bulkData = data;
+                renderBulkPreview(data);
+                $('#btn-process-bulk').disabled = false;
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    function renderBulkPreview(data) {
+        const tbody = $('#bulk-preview-body');
+        tbody.innerHTML = '';
+        data.slice(0, 10).forEach(row => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${row.name}</td><td>${row.contact}</td>`;
+            tbody.appendChild(tr);
+        });
+        if (data.length > 10) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td colspan="2" style="text-align:center; color:var(--text-secondary);">+ ${data.length - 10} más...</td>`;
+            tbody.appendChild(tr);
+        }
+        $('#bulk-preview').classList.remove('hidden');
+    }
+
+    async function processBulk() {
+        if (!state._bulkData) return;
+
+        const btn = $('#btn-process-bulk');
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = 'Procesando...';
+
+        const payload = {
+            client_id: $('#bulk-client').value,
+            value: parseFloat($('#bulk-value').value),
+            recipients: state._bulkData,
+            custom_company_name: state.user.company_name
+        };
+
+        try {
+            const res = await apiCall('/api/vendor/vouchers/bulk', {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+
+            if (res.success) {
+                showToast(res.message, 'success');
+                closeBulkModal();
+                state.lastBatch = res;
+                renderBatchResult(res);
+                loadVouchers();
+            } else {
+                showToast(res.error || 'Error en carga masiva', 'error');
+            }
+        } catch (err) {
+            showToast('Error de conexión', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = originalText;
+        }
     }
 
     function openProfileModal() {
@@ -398,12 +501,28 @@
                 ${c.contact_person ? `<div class="client-detail">👤 ${c.contact_person}</div>` : ''}
                 <div class="client-stats">
                     <span>Vales: <strong>${c.voucher_count || 0}</strong></span>
-                    <span>Total: <strong>$${(c.total_value || 0).toFixed(2)}</strong></span>
-                    <span>Canjeado: <strong>$${(c.redeemed_value || 0).toFixed(2)}</strong></span>
+                    <span>Consumido: <strong>$${(c.redeemed_value || 0).toFixed(2)}</strong></span>
+                </div>
+                <div class="client-actions" style="display:flex; gap: var(--space-sm); margin-top: var(--space-md);">
+                    <button class="btn btn-secondary btn-sm btn-view-client" style="flex:1" data-id="${c.id}" data-name="${c.name}" data-token="${c.access_token}">Ver Detalle</button>
+                    <button class="btn btn-ghost btn-sm btn-copy-portal" title="Copiar link del portal" data-url="${window.location.origin}/client.html?token=${c.access_token}">📋 Link</button>
+                    <button class="btn btn-ghost btn-sm btn-edit-client" data-id="${c.id}">✏️</button>
                 </div>
             `;
 
-            card.addEventListener('click', () => openClientModal(c));
+            card.querySelector('.btn-view-client').addEventListener('click', function () {
+                showClientDetails(this.dataset.id, this.dataset.name, this.dataset.token);
+            });
+
+            card.querySelector('.btn-copy-portal').addEventListener('click', function () {
+                navigator.clipboard.writeText(this.dataset.url);
+                showToast('Link del portal copiado', 'success');
+            });
+
+            card.querySelector('.btn-edit-client').addEventListener('click', function () {
+                openClientModal(state.clients.find(client => client.id === this.dataset.id));
+            });
+
             container.appendChild(card);
         });
     }

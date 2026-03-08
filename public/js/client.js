@@ -171,7 +171,7 @@
 
                 // Mock distribution (WhatsApp link)
                 if (data.recipient_contact) {
-                    const msg = encodeURIComponent(`Hola ${data.recipient_name}, tu empleado te ha enviado un pase de consumo de Pollo Campero por $${v.initial_value.toFixed(2)}. Puedes usarlo aquí: ${window.location.href}`);
+                    const msg = encodeURIComponent(`Hola ${data.recipient_name}, tu empleador te ha enviado un pase de consumo de Pollo Campero por $${v.initial_value.toFixed(2)}. Puedes usarlo aquí: ${window.location.href}`);
                     if (data.recipient_contact.includes('+') || !isNaN(data.recipient_contact)) {
                         window.open(`https://wa.me/${data.recipient_contact.replace(/\D/g, '')}?text=${msg}`);
                     }

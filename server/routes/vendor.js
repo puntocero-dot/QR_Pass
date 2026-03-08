@@ -201,4 +201,76 @@ router.get('/vouchers/:id', (req, res) => {
     });
 });
 
+/**
+ * POST /api/vendor/vouchers/bulk
+ * Create multiple vouchers from a list of recipients
+ */
+router.post('/vouchers/bulk', (req, res) => {
+    const { client_id, value, recipients, expiry_days, custom_company_name } = req.body;
+    const db = getDB();
+
+    if (!recipients || !Array.isArray(recipients) || recipients.length === 0) {
+        return res.status(400).json({ success: false, error: 'Lista de destinatarios inválida' });
+    }
+
+    const voucherValue = parseFloat(value);
+    const issueDate = new Date().toISOString();
+    const expiryDate = new Date();
+    expiryDate.setDate(expiryDate.getDate() + (parseInt(expiry_days) || 365));
+
+    const results = [];
+
+    try {
+        const stmt = db.prepare(`
+            INSERT INTO vouchers (
+                id, hashed_code, initial_value, current_value, 
+                issuing_company_id, issuing_company_name, client_id, 
+                issue_date, expiry_date, recipient_name, recipient_contact, use_type
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `);
+
+        // Transaction for better performance
+        const runTransaction = db.transaction((list) => {
+            for (const item of list) {
+                const id = uuidv4();
+                const code = uuidv4().split('-')[0];
+                const hashed = crypto.createHash('sha256').update(code).digest('hex');
+
+                stmt.run(
+                    id, hashed, voucherValue, voucherValue,
+                    req.user.company_id,
+                    custom_company_name || req.user.company_name,
+                    client_id,
+                    issueDate,
+                    expiryDate.toISOString(),
+                    item.name || '',
+                    item.contact || '',
+                    'Multiple'
+                );
+
+                results.push({
+                    index: results.length + 1,
+                    id,
+                    value: voucherValue,
+                    qr_payload: generateQRPayload(id, hashed),
+                    expiry_date: expiryDate.toISOString(),
+                    use_type: 'Multiple'
+                });
+            }
+        });
+
+        runTransaction(recipients);
+
+        res.json({
+            success: true,
+            message: `${recipients.length} vales generados exitosamente`,
+            vouchers: results
+        });
+
+    } catch (err) {
+        console.error('Bulk create error:', err);
+        res.status(500).json({ success: false, error: 'Error al procesar carga masiva' });
+    }
+});
+
 module.exports = router;
