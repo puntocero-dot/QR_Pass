@@ -223,7 +223,14 @@
         try {
             const res = await apiCall('/api/vendor/vouchers/create', {
                 method: 'POST',
-                body: JSON.stringify({ value, quantity, expiry_days, use_type, client_id })
+                body: JSON.stringify({
+                    value,
+                    quantity,
+                    expiry_days,
+                    use_type,
+                    client_id,
+                    custom_company_name: state.user.company_name
+                })
             });
 
             if (res.success) {
