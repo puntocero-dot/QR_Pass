@@ -356,7 +356,9 @@
 
     async function handleUserSubmit(e) {
         e.preventDefault();
+        const id = $('#user-id').value;
         const data = {
+            id: id || null,
             full_name: $('#user-full-name').value,
             username: $('#user-username').value,
             password: $('#user-password').value,
@@ -387,11 +389,25 @@
         const u = state.users.find(u => u.id === id);
         if (!u) return;
         $('#modal-user-title').textContent = 'Editar Usuario';
+        $('#user-id').value = u.id;
         $('#user-full-name').value = u.full_name;
         $('#user-username').value = u.username;
         $('#user-role').value = u.role;
         $('#user-related-id').value = u.related_id;
+        $('#user-password').value = '********'; // Placeholder to indicate no change unless edited
         $('#modal-user').classList.add('active');
+    };
+
+    window.deleteUser = async (id) => {
+        if (!confirm('¿Está seguro de eliminar este usuario?')) return;
+        try {
+            const res = await fetch(`/api/admin/users/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${state.token}` }
+            }).then(r => r.json());
+            if (res.success) loadUsers();
+            else alert(res.error);
+        } catch (e) { alert('Error eliminando usuario'); }
     };
 
     init();

@@ -84,8 +84,8 @@ router.post('/vouchers/create', (req, res) => {
                 hashedCode,
                 voucherValue,
                 voucherValue,
-                req.user.company_id,
-                req.body.custom_company_name || req.user.company_name,
+                req.user.company_id || 'ADMIN',
+                req.body.custom_company_name || req.user.company_name || 'Restaurantes Admin',
                 client_id,
                 issueDate,
                 expiryDate,
@@ -114,8 +114,8 @@ router.post('/vouchers/create', (req, res) => {
             total_value: (voucherValue * qty).toFixed(2),
             vouchers: createdVouchers,
             created_by: {
-                vendor_id: req.user.vendor_id,
-                company_name: req.user.company_name
+                vendor_id: req.user.vendor_id || req.user.id,
+                company_name: req.user.company_name || 'Admin'
             }
         });
     } catch (err) {
@@ -239,8 +239,8 @@ router.post('/vouchers/bulk', (req, res) => {
 
                 stmt.run(
                     id, hashed, voucherValue, voucherValue,
-                    req.user.company_id,
-                    custom_company_name || req.user.company_name,
+                    req.user.company_id || 'ADMIN',
+                    custom_company_name || req.user.company_name || 'Restaurantes Admin',
                     client_id,
                     issueDate,
                     expiryDate.toISOString(),

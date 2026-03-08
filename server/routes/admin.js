@@ -87,4 +87,30 @@ router.delete('/users/:id', authenticateToken, authorizeRole('admin'), (req, res
     }
 });
 
+/**
+ * GET /api/admin/vouchers
+ */
+router.get('/vouchers', authenticateToken, authorizeRole('admin'), (req, res) => {
+    const db = getDB();
+    const { generateQRPayload } = require('../utils/crypto');
+    try {
+        const vouchers = db.prepare(`
+            SELECT v.*, c.name as client_name 
+            FROM vouchers v 
+            LEFT JOIN clients c ON v.client_id = c.id
+            ORDER BY v.issue_date DESC
+            LIMIT 1000
+        `).all();
+        
+        const enriched = vouchers.map(v => ({
+            ...v,
+            qr_payload: generateQRPayload(v.id, v.hashed_code)
+        }));
+        
+        res.json({ success: true, vouchers: enriched });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
 module.exports = router;
