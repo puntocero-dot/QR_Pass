@@ -407,8 +407,26 @@
                 </div>
             </div>
 
-            <div id="vouchers-wrap" class="voucher-grid">
-                <!-- Vouchers loaded here -->
+            <div class="card mb-20 fade-in">
+                <div class="card-header">
+                    <h3>Repartir Vales Masivamente</h3>
+                    <p class="text-secondary">Cargue una lista de correos o números para asignar vales disponibles.</p>
+                </div>
+                <div class="bulk-actions">
+                    <div class="form-group">
+                        <label>Subir archivo CSV (un correo/número por línea)</label>
+                        <input type="file" id="bulk-csv" accept=".csv,.txt" class="input-file">
+                    </div>
+                    <button id="btn-process-bulk" class="btn btn-secondary">Procesar Lista</button>
+                </div>
+                <div id="bulk-preview" class="hidden mt-10">
+                    <p id="bulk-stats">...</p>
+                    <button id="btn-confirm-bulk" class="btn btn-primary">Confirmar Asignación</button>
+                </div>
+            </div>
+
+            <div class="vouchers-grid" id="vouchers-list">
+                <!-- Vouchers will be injected here -->
             </div>
 
             <div id="empty-state" class="empty-state hidden">
@@ -431,6 +449,23 @@
             <button class="btn btn-ghost" style="width:100%;" onclick="closeModal('qr-modal')">Cerrar</button>
         </div>
     </div>
+
+    <section id="login-section" class="card fade-in">
+        <h2 class="text-center">Acceso Portal de Empresa</h2>
+        <p class="text-secondary text-center">Gestione los vales de su organización</p>
+        <form id="portal-login-form">
+            <div class="form-group">
+                <label for="portal-identifier">NIT o Nombre de Empresa</label>
+                <input type="text" id="portal-identifier" placeholder="Ingrese su NIT o Nombre" required>
+            </div>
+            <div class="form-group">
+                <label for="portal-password">Contraseña</label>
+                <input type="password" id="portal-password" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Ingresar al Portal</button>
+        </form>
+        <div id="login-error" class="error-text hidden mt-10 text-center"></div>
+    </section>
 
     <!-- Send/Assign Modal -->
     <div class="modal" id="send-modal">

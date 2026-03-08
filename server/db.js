@@ -35,8 +35,22 @@ function initDB() {
       contact_person TEXT DEFAULT '',
       notes TEXT DEFAULT '',
       access_token TEXT UNIQUE,
+      password TEXT, -- For portal login
       created_at TEXT NOT NULL,
       is_active INTEGER DEFAULT 1
+    );
+  `);
+
+  // Create Users table for management
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS users (
+      id TEXT PRIMARY KEY,
+      username TEXT UNIQUE NOT NULL,
+      password TEXT NOT NULL,
+      role TEXT NOT NULL CHECK(role IN ('admin', 'vendor', 'cashier')),
+      full_name TEXT DEFAULT '',
+      related_id TEXT DEFAULT '', -- restaurant_id or vendor_id
+      created_at TEXT NOT NULL
     );
   `);
 
@@ -70,6 +84,7 @@ function initDB() {
       cashier_id TEXT NOT NULL,
       action_type TEXT NOT NULL CHECK(action_type IN ('QUERY', 'FULL_REDEMPTION', 'PARTIAL_REDEMPTION')),
       amount_redeemed REAL DEFAULT 0,
+      invoice_number TEXT DEFAULT '', -- New field for ticket/invoice
       notes TEXT DEFAULT '',
       unique_nonce TEXT UNIQUE NOT NULL
     );
@@ -85,6 +100,7 @@ function initDB() {
     CREATE INDEX IF NOT EXISTS idx_redemption_logs_nonce ON redemption_logs(unique_nonce);
     CREATE INDEX IF NOT EXISTS idx_clients_name ON clients(name);
     CREATE INDEX IF NOT EXISTS idx_clients_tax_id ON clients(tax_id);
+    CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
   `);
 
   console.log('✅ Base de datos inicializada correctamente');
@@ -108,29 +124,36 @@ function runMigrations(db) {
       db.exec("ALTER TABLE vouchers ADD COLUMN recipient_contact TEXT DEFAULT ''");
       console.log('✅ Migración: campos de destinatario agregados a vouchers');
     }
+
+    const redemptionCols = db.prepare("PRAGMA table_info(redemption_logs)").all();
+    if (!redemptionCols.find(c => c.name === 'invoice_number')) {
+      db.exec("ALTER TABLE redemption_logs ADD COLUMN invoice_number TEXT DEFAULT ''");
+      console.log('✅ Migración: columna invoice_number agregada a redemption_logs');
+    }
   } catch (e) { /* ignore */ }
 
   try {
-    const clientCols = db.prepare("PRAGMA table_info(clients)").all();
-    if (!clientCols.find(c => c.name === 'access_token')) {
-      db.exec("ALTER TABLE clients ADD COLUMN access_token TEXT UNIQUE");
-      console.log('✅ Migración: columna access_token agregada a clients');
+    if (!clientCols.find(c => c.name === 'password')) {
+      db.exec("ALTER TABLE clients ADD COLUMN password TEXT");
+      console.log('✅ Migración: columna password agregada a clients');
     }
 
-    // Generate tokens for existing clients that don't have one
+    // Generate tokens and default passwords
     const crypto = require('crypto');
-    const clientsWithoutToken = db.prepare("SELECT id FROM clients WHERE access_token IS NULL").all();
-    if (clientsWithoutToken.length > 0) {
-      const updateStmt = db.prepare("UPDATE clients SET access_token = ? WHERE id = ?");
+    const clientsToUpdate = db.prepare("SELECT id, tax_id FROM clients WHERE access_token IS NULL OR password IS NULL").all();
+    if (clientsToUpdate.length > 0) {
+      const updateStmt = db.prepare("UPDATE clients SET access_token = ?, password = ? WHERE id = ?");
       const migration = db.transaction((list) => {
         for (const c of list) {
-          updateStmt.run(crypto.randomBytes(16).toString('hex'), c.id);
+          const token = crypto.randomBytes(16).toString('hex');
+          const pass = c.tax_id || 'restaurantes2024';
+          updateStmt.run(token, pass, c.id);
         }
       });
-      migration(clientsWithoutToken);
-      console.log(`✅ Migración: ${clientsWithoutToken.length} tokens generados para clientes existentes`);
+      migration(clientsToUpdate);
+      console.log(`✅ Migración: ${clientsToUpdate.length} credenciales actualizadas para clientes`);
     }
-  } catch (e) { /* ignore */ }
+  } catch (e) { console.error('Migration error:', e); }
 
   // Remove FK constraint from redemption_logs by recreating without it
   // (SQLite doesn't support dropping FKs, but our new CREATE skips the FK)
@@ -148,6 +171,22 @@ function seedDemoData() {
 
   // Check if data already exists
   const count = database.prepare('SELECT COUNT(*) as c FROM vouchers').get();
+  const userCount = database.prepare('SELECT COUNT(*) as c FROM users').get();
+
+  if (userCount.c === 0) {
+    const insertUser = database.prepare(`
+      INSERT INTO users (id, username, password, role, full_name, related_id, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `);
+    
+    // Initial demo users
+    insertUser.run(uuidv4(), 'admin', process.env.ADMIN_PASS || 'admin2024', 'admin', 'Super Administrador', '', new Date().toISOString());
+    insertUser.run(uuidv4(), 'cajero', process.env.CASHIER_PASS || 'restaurantes2024', 'cashier', 'Cajero Metrocentro', 'RESTAURANTE_METROCENTRO_SS', new Date().toISOString());
+    insertUser.run(uuidv4(), 'vendedor', process.env.VENDOR_PASS || 'vendedor2024', 'vendor', 'Vendedor Demo', 'VEND-001', new Date().toISOString());
+    
+    console.log('✅ Usuarios iniciales creados');
+  }
+
   if (count.c > 0) {
     console.log('ℹ️  Datos demo ya existen, omitiendo seed...');
     return;

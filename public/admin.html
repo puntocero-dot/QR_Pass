@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin — Restaurantes</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body class="admin-portal">
+    <header class="app-header">
+        <div class="header-left">
+            <div class="logo">
+                <span class="logo-icon">🐔</span>
+                <span class="logo-text">Admin</span>
+            </div>
+        </div>
+        <div class="header-right">
+            <span id="admin-name" class="user-name">Administrador</span>
+            <button id="btn-logout" class="btn btn-ghost btn-sm">Cerrar Sesión</button>
+        </div>
+    </header>
+
+    <main class="app-content">
+        <aside class="sidebar">
+            <nav class="nav-menu">
+                <button class="nav-item active" data-view="overview">📊 Dashboard</button>
+                <button class="nav-item" data-view="users">👥 Usuarios</button>
+                <button class="nav-item" data-view="clients">🏢 Empresas</button>
+                <button class="nav-item" data-view="vouchers">🎫 Vales</button>
+            </nav>
+        </aside>
+
+        <section class="view-content">
+            <div id="view-overview" class="view-pane">
+                <h1 class="view-title">Vista General</h1>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="stat-total-vouchers">0</div>
+                        <div class="stat-label">Vales Emitidos</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="stat-total-redeemed">0</div>
+                        <div class="stat-label">Vales Redimidos</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="stat-active-companies">0</div>
+                        <div class="stat-label">Empresas Activas</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-users" class="view-pane hidden">
+                <div class="view-header">
+                    <h1 class="view-title">Gestión de Usuarios</h1>
+                    <button id="btn-add-user" class="btn btn-primary">➕ Nuevo Usuario</button>
+                </div>
+                <div class="card">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Usuario</th>
+                                <th>Nombre</th>
+                                <th>Rol</th>
+                                <th>Relación</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="view-clients" class="view-pane hidden">
+                <div class="view-header">
+                    <h1 class="view-title">Gestión de Empresas</h1>
+                    <button id="btn-add-client" class="btn btn-primary">➕ Nueva Empresa</button>
+                </div>
+                <div id="clients-grid" class="client-grid"></div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal User -->
+    <div id="modal-user" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-user-title">Nuevo Usuario</h2>
+                <button class="btn-close-modal">&times;</button>
+            </div>
+            <form id="user-form">
+                <div class="form-group">
+                    <label>Nombre Completo</label>
+                    <input type="text" id="user-full-name" required>
+                </div>
+                <div class="form-group">
+                    <label>Usuario</label>
+                    <input type="text" id="user-username" required>
+                </div>
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    <input type="password" id="user-password" required>
+                </div>
+                <div class="form-group">
+                    <label>Rol</label>
+                    <select id="user-role" required>
+                        <option value="admin">Administrador</option>
+                        <option value="vendor">Vendedor</option>
+                        <option value="cashier">Cajero</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>ID Relacionado (Restaurante/Vendedor)</label>
+                    <input type="text" id="user-related-id">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Guardar Usuario</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="/js/admin.js"></script>
+</body>
+</html>

@@ -42,5 +42,17 @@ function authMiddleware(req, res, next) {
         });
     }
 }
+function authorizeRole(...roles) {
+    return (req, res, next) => {
+        if (!req.user || !roles.includes(req.user.role)) {
+            return res.status(403).json({
+                success: false,
+                error: 'Acceso denegado — Permisos insuficientes',
+                code: 'FORBIDDEN'
+            });
+        }
+        next();
+    };
+}
 
-module.exports = { authMiddleware, JWT_SECRET };
+module.exports = { authMiddleware, authenticateToken: authMiddleware, authorizeRole, JWT_SECRET };
