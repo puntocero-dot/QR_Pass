@@ -142,7 +142,7 @@ router.get('/vouchers', (req, res) => {
     WHERE v.issuing_company_id = ?
     ORDER BY v.issue_date DESC
     LIMIT 2000
-  `).all(req.user.company_id);
+  `).all(req.user.company_id || req.user.vendor_id);
 
     // Add QR payloads to each
     const enriched = vouchers.map(v => ({
@@ -177,7 +177,7 @@ router.get('/vouchers', (req, res) => {
 router.get('/vouchers/:id', (req, res) => {
     const db = getDB();
     const voucher = db.prepare('SELECT * FROM vouchers WHERE id = ? AND issuing_company_id = ?')
-        .get(req.params.id, req.user.company_id);
+        .get(req.params.id, req.user.company_id || req.user.vendor_id);
 
     if (!voucher) {
         return res.status(404).json({
