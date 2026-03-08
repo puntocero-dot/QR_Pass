@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════
-   POLLO CAMPERO — Vendor Portal Logic
+   RESTAURANTES — Vendor Portal Logic
    ═══════════════════════════════════════════════ */
 
 (function () {
@@ -230,7 +230,7 @@
         if (!newName) return;
 
         state.user.company_name = newName;
-        localStorage.setItem('campero_user', JSON.stringify(state.user));
+        localStorage.setItem('restaurantes_user', JSON.stringify(state.user));
         $('#vendor-company-name').textContent = newName;
 
         closeProfileModal();
