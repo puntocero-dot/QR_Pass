@@ -71,7 +71,10 @@
         });
         $('#btn-copy-qr').addEventListener('click', copyQRCode);
         $('#btn-print-batch').addEventListener('click', () => window.print());
-        $('#btn-back-to-dashboard').addEventListener('click', showDashboard);
+        $('#btn-logout').addEventListener('click', handleLogout);
+
+        // Close QR modal
+        $('#btn-close-modal').addEventListener('click', closeModal);
 
 
         // Close QR modal on overlay click
@@ -524,6 +527,82 @@
             });
 
             container.appendChild(card);
+        });
+    }
+
+    function showClientDetails(clientId, name, token) {
+        state._currentClientId = clientId;
+        $('#detail-client-name').textContent = name || 'Detalle del Cliente';
+        $('#client-portal-url').textContent = `${window.location.origin}/client.html?token=${token}`;
+        
+        showView('view-client-details');
+        loadClientVouchers(clientId);
+    }
+
+    async function loadClientVouchers(clientId) {
+        const tbody = $('#client-voucher-body');
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:var(--space-xl);"><div class="btn-loader" style="margin:0 auto"></div></td></tr>';
+
+        try {
+            const res = await apiCall(`/api/vendor/vouchers`); // Filtered in JS for simplicity or use specific endpoint if available
+            if (res.success) {
+                const filtered = res.vouchers.filter(v => v.client_id === clientId);
+                renderClientVoucherTable(filtered);
+                
+                const stats = {
+                    total: filtered.reduce((sum, v) => sum + v.initial_value, 0),
+                    redeemed: filtered.reduce((sum, v) => sum + (v.initial_value - v.current_value), 0),
+                    remaining: filtered.reduce((sum, v) => sum + v.current_value, 0)
+                };
+                
+                $('#client-stat-total').textContent = `$${stats.total.toFixed(2)}`;
+                $('#client-stat-redeemed').textContent = `$${stats.redeemed.toFixed(2)}`;
+                $('#client-stat-remaining').textContent = `$${stats.remaining.toFixed(2)}`;
+            }
+        } catch (err) {
+            showToast('Error cargando vales del cliente', 'error');
+        }
+    }
+
+    function renderClientVoucherTable(vouchers) {
+        const tbody = $('#client-voucher-body');
+        tbody.innerHTML = '';
+
+        if (vouchers.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-tertiary);">No hay vales registrados para este cliente</td></tr>';
+            return;
+        }
+
+        vouchers.forEach((v, i) => {
+            const isExpired = v.is_expired;
+            const isFullyUsed = v.current_value <= 0;
+            let statusText, statusClass;
+
+            if (isExpired) { statusText = 'Vencido'; statusClass = 'status-expired'; }
+            else if (isFullyUsed) { statusText = 'Agotado'; statusClass = 'status-used'; }
+            else if (v.current_value < v.initial_value) { statusText = `Parcial`; statusClass = 'status-used'; }
+            else { statusText = 'Activo'; statusClass = 'status-active'; }
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${i + 1}</td>
+                <td>$${v.initial_value.toFixed(2)}</td>
+                <td><strong>$${v.current_value.toFixed(2)}</strong></td>
+                <td class="${statusClass}">${statusText}</td>
+                <td>${new Date(v.expiry_date).toLocaleDateString('es-SV')}</td>
+                <td><button class="btn btn-secondary btn-sm" data-qr="${encodeURIComponent(v.qr_payload)}" data-value="${v.initial_value}" data-expiry="${v.expiry_date}" data-type="${v.use_type}">Ver QR</button></td>
+            `;
+
+            tr.querySelector('button').addEventListener('click', function () {
+                showQRModal(
+                    decodeURIComponent(this.dataset.qr),
+                    parseFloat(this.dataset.value),
+                    this.dataset.expiry,
+                    this.dataset.type
+                );
+            });
+
+            tbody.appendChild(tr);
         });
     }
 

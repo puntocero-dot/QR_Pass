@@ -621,15 +621,15 @@
                         <div class="stat-label">Total Vales</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-number" id="stat-active">0</div>
-                        <div class="stat-label">Activos</div>
+                        <div class="stat-number" id="stat-vouchers">0</div>
+                        <div class="stat-label">En Circulación</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-number" id="stat-expired">0</div>
-                        <div class="stat-label">Vencidos</div>
+                        <div class="stat-number" id="stat-total-value">$0.00</div>
+                        <div class="stat-label">Valor Total</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-number" id="stat-redeemed">$0</div>
+                        <div class="stat-number" id="stat-redeemed">$0.00</div>
                         <div class="stat-label">Canjeado</div>
                     </div>
                 </div>
@@ -708,6 +708,7 @@
                             style="color:var(--text-secondary); font-size:0.9rem; margin-bottom: var(--space-sm);"></p>
                         <button id="btn-print-batch" class="btn btn-secondary btn-sm"
                             style="margin-bottom: var(--space-md);">🖨️ Imprimir QR's</button>
+                        <button id="btn-clear-batch" class="btn btn-ghost btn-sm" onclick="document.getElementById('batch-result').classList.add('hidden')" style="margin-bottom: var(--space-md);">Ocultar Resultado</button>
                         <div id="batch-qr-grid" class="batch-qr-grid"></div>
                     </div>
 
@@ -724,6 +725,12 @@
                             </svg>
                             Mis Vales Generados
                         </h3>
+                        <div style="display:flex; gap:var(--space-sm); margin-bottom:var(--space-md); flex-wrap:wrap;">
+                            <button id="btn-refresh-vouchers" class="btn btn-secondary btn-sm">🔄 Actualizar</button>
+                            <select id="filter-client" class="btn-sm" style="background:var(--bg-card); color:var(--text-primary); border:1px solid var(--border-subtle); border-radius:var(--radius-sm); padding:6px 12px; outline:none; min-width:180px;">
+                                <option value="">Todos los Clientes</option>
+                            </select>
+                        </div>
                         <div id="voucher-list-container">
                             <div class="empty-state" id="empty-state">
                                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"

@@ -1,4 +1,5 @@
 const express = require('express');
+const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
 const { getDB } = require('../db');
 const { generateHashedCode, generateQRPayload } = require('../utils/crypto');
