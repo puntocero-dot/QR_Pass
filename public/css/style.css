@@ -539,8 +539,9 @@ textarea {
 .scanner-box {
   position: relative;
   width: 100%;
-  aspect-ratio: 1;
-  max-height: 320px;
+  max-width: 400px;
+  aspect-ratio: 1 / 1;
+  margin: 0 auto;
   border-radius: var(--radius-xl);
   overflow: hidden;
   background: var(--bg-card);

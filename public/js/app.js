@@ -217,20 +217,46 @@
 
     function startScanner() {
         if (state.scanner) return;
+        
+        const width = $('#scanner-box').clientWidth;
+        const qrboxSize = Math.floor(width * 0.7);
+
         state.scanner = new Html5Qrcode("qr-reader");
         state.scanner.start(
             { facingMode: "environment" },
-            { fps: 10, qrbox: 250 },
+            { 
+                fps: 20, 
+                qrbox: { width: qrboxSize, height: qrboxSize },
+                aspectRatio: 1.0
+            },
             (text) => {
                 validateVoucher(text);
                 stopScanner();
             }
-        ).catch(e => console.error(e));
+        ).catch(err => {
+            console.error(err);
+            state.scanner = null; // Reset state if start fails
+            if (err.name === 'NotAllowedError') {
+                alert('Permiso de cámara denegado. Por favor, habilite el acceso a la cámara en los ajustes de su navegador.');
+            } else {
+                alert('Error al iniciar la cámara: ' + err);
+            }
+        });
     }
 
     function stopScanner() {
         if (state.scanner) {
-            state.scanner.stop().then(() => state.scanner = null);
+            // Check if actually running before calling stop
+            if (state.scanner.getState() === 2) { // 2 = SCANNING
+                state.scanner.stop().then(() => {
+                    state.scanner = null;
+                }).catch(e => {
+                    console.warn("Error stopping scanner:", e);
+                    state.scanner = null;
+                });
+            } else {
+                state.scanner = null;
+            }
         }
     }
 
