@@ -5,10 +5,15 @@
   "main": "server/server.js",
   "scripts": {
     "dev": "node server/server.js",
-    "start": "node server/server.js",
+    "start": "node --omit=dev server/server.js",
     "seed": "node server/seed.js"
   },
-  "keywords": ["campero", "voucher", "pwa", "qr"],
+  "keywords": [
+    "campero",
+    "voucher",
+    "pwa",
+    "qr"
+  ],
   "license": "ISC",
   "dependencies": {
     "better-sqlite3": "^11.0.0",

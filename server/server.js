@@ -42,9 +42,13 @@ app.use((err, req, res, next) => {
     });
 });
 
-// Initialize DB and start server
+// Initialize DB
 initDB();
-seedDemoData();
+
+// Optional seeding (disable by not setting SEED_DATA=true in Railway)
+if (process.env.SEED_DATA === 'true') {
+    seedDemoData();
+}
 
 app.listen(PORT, () => {
     console.log(`\n🐔 ═══════════════════════════════════════════════════`);
