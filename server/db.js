@@ -112,25 +112,13 @@ function initDB() {
 }
 
 function runMigrations(db) {
-  // Add client_id to vouchers if it doesn't exist
-  try {
-    const cols = db.prepare("PRAGMA table_info(vouchers)").all();
-    if (!cols.find(c => c.name === 'client_id')) {
-      db.exec("ALTER TABLE vouchers ADD COLUMN client_id TEXT DEFAULT ''");
-      console.log('✅ Migración: columna client_id agregada a vouchers');
-    }
-    if (!cols.find(c => c.name === 'recipient_name')) {
-      db.exec("ALTER TABLE vouchers ADD COLUMN recipient_name TEXT DEFAULT ''");
-      db.exec("ALTER TABLE vouchers ADD COLUMN recipient_contact TEXT DEFAULT ''");
-      console.log('✅ Migración: campos de destinatario agregados a vouchers');
-    }
+    } catch (e) { /* ignore */ }
 
-    const redemptionCols = db.prepare("PRAGMA table_info(redemption_logs)").all();
-    if (!redemptionCols.find(c => c.name === 'invoice_number')) {
-      db.exec("ALTER TABLE redemption_logs ADD COLUMN invoice_number TEXT DEFAULT ''");
-      console.log('✅ Migración: columna invoice_number agregada a redemption_logs');
-    }
-  } catch (e) { /* ignore */ }
+  // Assign orphan vouchers to the main vendor ID to avoid 'missing' historical data
+  try {
+    db.prepare("UPDATE vouchers SET issuing_company_id = 'VEND-001' WHERE issuing_company_id = '' OR issuing_company_id IS NULL OR issuing_company_id = 'ADMIN'").run();
+    console.log('✅ Migración: vales huérfanos asignados a VEND-001');
+  } catch (e) { console.error('Orphan migration error:', e); }
 
   try {
     const clientCols = db.prepare("PRAGMA table_info(clients)").all();
@@ -204,7 +192,7 @@ function seedDemoData() {
       hashed_code: generateHashedCode(),
       initial_value: 45.00,
       current_value: 45.00,
-      issuing_company_id: uuidv4(),
+      issuing_company_id: 'VEND-001',
       issuing_company_name: 'Tigo El Salvador',
       issue_date: '2024-01-15T00:00:00Z',
       expiry_date: '2026-12-31T23:59:59Z',
@@ -217,7 +205,7 @@ function seedDemoData() {
       hashed_code: generateHashedCode(),
       initial_value: 25.00,
       current_value: 5.50,
-      issuing_company_id: uuidv4(),
+      issuing_company_id: 'VEND-001',
       issuing_company_name: 'Claro El Salvador',
       issue_date: '2024-03-01T00:00:00Z',
       expiry_date: '2026-12-31T23:59:59Z',
@@ -230,7 +218,7 @@ function seedDemoData() {
       hashed_code: generateHashedCode(),
       initial_value: 15.00,
       current_value: 15.00,
-      issuing_company_id: uuidv4(),
+      issuing_company_id: 'VEND-001',
       issuing_company_name: 'Digicel El Salvador',
       issue_date: '2023-06-01T00:00:00Z',
       expiry_date: '2024-06-01T23:59:59Z',

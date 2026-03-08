@@ -10,9 +10,25 @@ const router = express.Router();
  */
 router.get('/stats', authenticateToken, authorizeRole('admin', 'vendor'), (req, res) => {
     const db = getDB();
+    const isVendor = req.user.role === 'vendor';
+    const companyId = req.user.company_id || req.user.vendor_id;
+
     try {
-        const totalVouchers = db.prepare('SELECT COUNT(*) as count FROM vouchers').get().count;
-        const totalRedeemed = db.prepare('SELECT COUNT(*) as count FROM redemption_logs').get().count;
+        let totalVouchers, totalRedeemed;
+        
+        if (isVendor) {
+            totalVouchers = db.prepare('SELECT COUNT(*) as count FROM vouchers WHERE issuing_company_id = ?').get(companyId).count;
+            totalRedeemed = db.prepare(`
+                SELECT COUNT(*) as count 
+                FROM redemption_logs rl
+                JOIN vouchers v ON rl.voucher_id = v.id
+                WHERE v.issuing_company_id = ?
+            `).get(companyId).count;
+        } else {
+            totalVouchers = db.prepare('SELECT COUNT(*) as count FROM vouchers').get().count;
+            totalRedeemed = db.prepare('SELECT COUNT(*) as count FROM redemption_logs').get().count;
+        }
+
         const activeClients = db.prepare('SELECT COUNT(*) as count FROM clients WHERE is_active = 1').get().count;
         const totalUsers = db.prepare('SELECT COUNT(*) as count FROM users').get().count;
 
@@ -26,6 +42,7 @@ router.get('/stats', authenticateToken, authorizeRole('admin', 'vendor'), (req, 
             }
         });
     } catch (err) {
+        console.error('Stats error:', err);
         res.status(500).json({ success: false, error: err.message });
     }
 });
