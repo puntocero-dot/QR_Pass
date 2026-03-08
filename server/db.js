@@ -3,7 +3,14 @@ const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const { generateHashedCode, generateQRPayload } = require('./utils/crypto');
 
-const DB_PATH = path.join(__dirname, 'campero.db');
+const fs = require('fs');
+
+const DATA_DIR = path.join(__dirname, '..', 'data');
+if (!fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+}
+
+const DB_PATH = path.join(DATA_DIR, 'campero.db');
 
 let db;
 
