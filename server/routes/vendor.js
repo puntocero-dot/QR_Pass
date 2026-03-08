@@ -84,7 +84,7 @@ router.post('/vouchers/create', (req, res) => {
                 voucherValue,
                 voucherValue,
                 req.user.company_id,
-                req.user.company_name,
+                req.body.custom_company_name || req.user.company_name,
                 client_id,
                 issueDate,
                 expiryDate,

@@ -87,6 +87,36 @@
         $('#client-modal').addEventListener('click', (e) => {
             if (e.target.id === 'client-modal') closeClientModal();
         });
+
+        // Profile / Vendor Name settings
+        $('#btn-edit-profile').addEventListener('click', openProfileModal);
+        $('#btn-cancel-profile').addEventListener('click', closeProfileModal);
+        $('#profile-form').addEventListener('submit', handleSaveProfile);
+        $('#profile-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'profile-modal') closeProfileModal();
+        });
+    }
+
+    function openProfileModal() {
+        $('#profile-company-name').value = state.user.company_name;
+        $('#profile-modal').classList.remove('hidden');
+    }
+
+    function closeProfileModal() {
+        $('#profile-modal').classList.add('hidden');
+    }
+
+    function handleSaveProfile(e) {
+        e.preventDefault();
+        const newName = $('#profile-company-name').value.trim();
+        if (!newName) return;
+
+        state.user.company_name = newName;
+        localStorage.setItem('campero_user', JSON.stringify(state.user));
+        $('#vendor-company-name').textContent = newName;
+
+        closeProfileModal();
+        showToast('Nombre de empresa actualizado', 'success');
     }
 
     function handleLogout() {

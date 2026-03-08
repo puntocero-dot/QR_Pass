@@ -573,10 +573,14 @@
                 </div>
             </div>
             <div class="header-center">
-                <span class="restaurant-badge"
-                    style="background: rgba(255,152,0,0.15); border: 1px solid rgba(255,152,0,0.3);">
+                <span class="restaurant-badge" id="btn-edit-profile" title="Click para cambiar nombre de empresa"
+                    style="background: rgba(255,152,0,0.15); border: 1px solid rgba(255,152,0,0.3); cursor: pointer;">
                     <span>🏢</span>
                     <span id="vendor-company-name">Portal Vendedor</span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        style="margin-left: 4px; opacity: 0.6;">
+                        <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+                    </svg>
                 </span>
             </div>
             <div class="header-right">
@@ -817,6 +821,25 @@
                 <div style="display:flex; gap:var(--space-sm); margin-top:var(--space-lg)">
                     <button type="submit" class="btn btn-danger" style="flex:1">Guardar Cliente</button>
                     <button type="button" id="btn-cancel-client" class="btn btn-ghost">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div id="profile-modal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 400px;">
+            <h3>🏢 Configuración de Empresa</h3>
+            <p style="color:var(--text-secondary); font-size: 0.85rem; margin-bottom: var(--space-md);">Personaliza el
+                nombre que aparecerá en tus nuevos vales y en el panel.</p>
+            <form id="profile-form">
+                <div class="input-group">
+                    <label for="profile-company-name">Nombre de tu Empresa / Vendedor</label>
+                    <input type="text" id="profile-company-name" placeholder="Ej: Punto Cero" required>
+                </div>
+                <div style="display:flex; gap:var(--space-sm); margin-top:var(--space-lg)">
+                    <button type="submit" class="btn btn-danger" style="flex:1">Guardar Cambios</button>
+                    <button type="button" id="btn-cancel-profile" class="btn btn-ghost">Cancelar</button>
                 </div>
             </form>
         </div>
