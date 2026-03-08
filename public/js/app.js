@@ -3,15 +3,15 @@
     const $$ = (sel) => document.querySelectorAll(sel);
 
     const state = {
-        token: localStorage.getItem('auth_token'),
-        user: JSON.parse(localStorage.getItem('auth_user') || 'null'),
+        token: localStorage.getItem('restaurantes_token'),
+        user: JSON.parse(localStorage.getItem('restaurantes_user') || 'null'),
         currentVoucher: null,
         scanner: null
     };
 
     function init() {
         if (state.token && state.user) {
-            if (state.user.role === 'admin') {
+            if (state.user.role === 'admin' || state.user.role === 'vendor') {
                 location.href = '/admin.html';
                 return;
             }
@@ -41,10 +41,10 @@
                 if (res.success) {
                     state.token = res.token;
                     state.user = res.user;
-                    localStorage.setItem('auth_token', res.token);
-                    localStorage.setItem('auth_user', JSON.stringify(res.user));
+                    localStorage.setItem('restaurantes_token', res.token);
+                    localStorage.setItem('restaurantes_user', JSON.stringify(res.user));
                     
-                    if (res.user.role === 'admin') location.href = '/admin.html';
+                    if (res.user.role === 'admin' || res.user.role === 'vendor') location.href = '/admin.html';
                     else showApp();
                 } else {
                     errorEl.textContent = res.error;

@@ -8,7 +8,7 @@ const router = express.Router();
 /**
  * GET /api/admin/stats
  */
-router.get('/stats', authenticateToken, authorizeRole('admin'), (req, res) => {
+router.get('/stats', authenticateToken, authorizeRole('admin', 'vendor'), (req, res) => {
     const db = getDB();
     try {
         const totalVouchers = db.prepare('SELECT COUNT(*) as count FROM vouchers').get().count;
@@ -33,7 +33,7 @@ router.get('/stats', authenticateToken, authorizeRole('admin'), (req, res) => {
 /**
  * GET /api/admin/users
  */
-router.get('/users', authenticateToken, authorizeRole('admin'), (req, res) => {
+router.get('/users', authenticateToken, authorizeRole('admin', 'vendor'), (req, res) => {
     const db = getDB();
     try {
         const users = db.prepare('SELECT id, username, role, full_name, related_id, created_at FROM users').all();
@@ -47,7 +47,7 @@ router.get('/users', authenticateToken, authorizeRole('admin'), (req, res) => {
  * POST /api/admin/users
  * Create or Update user
  */
-router.post('/users', authenticateToken, authorizeRole('admin'), (req, res) => {
+router.post('/users', authenticateToken, authorizeRole('admin', 'vendor'), (req, res) => {
     const db = getDB();
     const { id, username, password, role, full_name, related_id } = req.body;
 

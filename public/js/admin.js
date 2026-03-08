@@ -11,13 +11,19 @@
     };
 
     async function init() {
-        if (!state.token || state.user.role !== 'admin') {
+        if (!state.token || (state.user.role !== 'admin' && state.user.role !== 'vendor')) {
             window.location.href = '/index.html';
             return;
         }
 
         $('#admin-name').textContent = state.user.full_name || state.user.username;
         
+        // Role based UI
+        if (state.user.role === 'vendor') {
+            const usersTab = $(`.nav-item[data-view="users"]`);
+            if (usersTab) usersTab.style.display = 'none';
+        }
+
         bindEvents();
         loadDashboard();
         loadUsers();
@@ -64,9 +70,18 @@
     }
 
     async function loadDashboard() {
-        // Mock dashboard data for now
-        $('#stat-active-companies').textContent = '...';
-        $('#stat-total-vouchers').textContent = '...';
+        try {
+            const res = await fetch('/api/admin/stats', {
+                headers: { 'Authorization': `Bearer ${state.token}` }
+            }).then(r => r.json());
+            
+            if (res.success) {
+                $('#stat-active-companies').textContent = res.stats.total_clients || '0';
+                $('#stat-total-vouchers').textContent = res.stats.total_vouchers || '0';
+                const redeemedEl = $('#stat-total-redeemed');
+                if (redeemedEl) redeemedEl.textContent = res.stats.total_redemptions || '0';
+            }
+        } catch (e) { console.error('Stats error', e); }
     }
 
     async function loadUsers() {
