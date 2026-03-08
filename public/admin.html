@@ -73,23 +73,79 @@
                 </div>
             </div>
 
-            <div id="view-clients" class="view-pane hidden">
-                <div class="view-header">
-                    <h1 class="view-title">Gestión de Empresas</h1>
-                    <button id="btn-add-client" class="btn btn-primary">➕ Nueva Empresa</button>
+                <div id="view-clients" class="view-pane hidden">
+                    <div class="view-header">
+                        <h1 class="view-title">Gestión de Empresas</h1>
+                        <button id="btn-add-client" class="btn btn-primary">➕ Nueva Empresa</button>
+                    </div>
+                    <div id="clients-grid" class="client-grid"></div>
                 </div>
-                <div id="clients-grid" class="client-grid"></div>
-            </div>
 
-            <div id="view-vouchers" class="view-pane hidden">
-                <div class="view-header">
-                    <h1 class="view-title">Gestión de Vales</h1>
-                    <p class="text-secondary">Próximamente: Historial completo de vales y filtros avanzados.</p>
+                <div id="view-vouchers" class="view-pane hidden">
+                    <div class="view-header">
+                        <h1 class="view-title">Gestión de Vales</h1>
+                    </div>
+                    
+                    <!-- Create Voucher Form -->
+                    <div class="card p-24 mb-24">
+                        <div class="flex justify-between items-center mb-16">
+                            <h3>Generar Nuevos Vales</h3>
+                            <button id="btn-open-bulk" class="btn btn-secondary btn-sm">📤 Carga Masiva (CSV)</button>
+                        </div>
+                        <form id="create-voucher-form">
+                            <div class="grid grid-cols-2 lg:grid-cols-4 gap-16 mb-16">
+                                <div class="form-group mb-0">
+                                    <label>Cliente / Empresa</label>
+                                    <select id="create-voucher-client" required>
+                                        <option value="">— Seleccionar —</option>
+                                    </select>
+                                </div>
+                                <div class="form-group mb-0">
+                                    <label>Valor (USD)</label>
+                                    <input type="number" id="create-voucher-value" step="0.01" min="0.01" placeholder="25.00" required>
+                                </div>
+                                <div class="form-group mb-0">
+                                    <label>Cantidad</label>
+                                    <input type="number" id="create-voucher-qty" min="1" max="500" value="1" required>
+                                </div>
+                                <div class="form-group mb-0">
+                                    <label>Tipo Uso</label>
+                                    <select id="create-voucher-type">
+                                        <option value="Multiple">Múltiple</option>
+                                        <option value="Single">Único</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block">GENERAR VALES CON QR</button>
+                        </form>
+                    </div>
+
+                    <!-- Batch Result View -->
+                    <div id="batch-result" class="card p-24 mb-24 hidden">
+                        <div class="flex justify-between items-center mb-16">
+                            <h3 id="batch-title">✅ Vales Creados</h3>
+                            <button class="btn btn-ghost btn-sm" onclick="$('#batch-result').classList.add('hidden')">Ocultar</button>
+                        </div>
+                        <div id="batch-qr-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-16"></div>
+                    </div>
+
+                    <div class="card">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Cliente</th>
+                                    <th>Valor</th>
+                                    <th>Saldo</th>
+                                    <th>Estado</th>
+                                    <th>Expira</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="vouchers-table-body"></tbody>
+                        </table>
+                    </div>
                 </div>
-                <div class="card p-20 text-center">
-                    <p>Módulo en desarrollo. Use el portal de vendedor o cliente para operaciones específicas.</p>
-                </div>
-            </div>
         </section>
     </main>
 
@@ -130,6 +186,82 @@
         </div>
     </div>
 
+    <!-- Modal Client -->
+    <div id="modal-client" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-client-title">Nueva Empresa</h2>
+                <button class="btn-close-modal">&times;</button>
+            </div>
+            <form id="client-form">
+                <input type="hidden" id="client-id">
+                <div class="form-group">
+                    <label>Nombre / Razón Social</label>
+                    <input type="text" id="client-name" required>
+                </div>
+                <div class="grid grid-cols-2 gap-16">
+                    <div class="form-group">
+                        <label>NIT / NRC</label>
+                        <input type="text" id="client-tax-id">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="client-email">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Persona de Contacto</label>
+                    <input type="text" id="client-contact">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Guardar Empresa</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Bulk -->
+    <div id="modal-bulk" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Carga Masiva de Vales</h2>
+                <button class="btn-close-modal">&times;</button>
+            </div>
+            <div class="p-16 mb-16 bg-info bg-opacity-10 border border-info rounded">
+                <p class="text-xs text-info">Suba un CSV con columnas: <code>nombre, contacto</code></p>
+            </div>
+            <form id="bulk-form">
+                <div class="form-group">
+                    <label>Empresa Destino</label>
+                    <select id="bulk-client" required></select>
+                </div>
+                <div class="form-group">
+                    <label>Valor USD</label>
+                    <input type="number" id="bulk-value" step="0.01" value="10.00" required>
+                </div>
+                <div class="form-group">
+                    <label>Archivo CSV</label>
+                    <input type="file" id="bulk-file" accept=".csv" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Procesar Carga</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- QR Modal -->
+    <div id="modal-qr" class="modal">
+        <div class="modal-content text-center">
+            <div class="modal-header">
+                <h2>Código QR del Vale</h2>
+                <button class="btn-close-modal">&times;</button>
+            </div>
+            <div id="qr-display" class="mb-16 inline-block bg-white p-16 rounded"></div>
+            <div class="text-left bg-gray-900 p-12 rounded">
+                <code id="qr-payload-text" class="text-xs break-all text-gray-400"></code>
+            </div>
+            <button id="btn-download-qr" class="btn btn-secondary btn-block mt-16">Descargar Imagen</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
     <script src="/js/admin.js"></script>
 </body>
 </html>

@@ -9,18 +9,18 @@ const router = express.Router();
 // All client routes require auth + vendor role
 router.use(authMiddleware);
 
-function vendorOnly(req, res, next) {
-    if (req.user.role !== 'vendor') {
+function authorizeManagement(req, res, next) {
+    if (req.user.role !== 'vendor' && req.user.role !== 'admin') {
         return res.status(403).json({
             success: false,
-            error: 'Acceso denegado — Solo vendedores autorizados',
+            error: 'Acceso denegado — Solo personal autorizado',
             code: 'FORBIDDEN'
         });
     }
     next();
 }
 
-router.use(vendorOnly);
+router.use(authorizeManagement);
 
 /**
  * GET /api/clients
