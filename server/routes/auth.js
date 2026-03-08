@@ -9,7 +9,7 @@ const { getDB } = require('../db');
 /**
  * POST /api/auth/login
  */
-router.post('/login', (req, res) => {
+router.post('/login', async (req, res) => {
     const { username, password } = req.body;
     const db = getDB();
 
@@ -21,7 +21,8 @@ router.post('/login', (req, res) => {
     }
 
     try {
-        const user = db.prepare('SELECT * FROM users WHERE username = ? COLLATE NOCASE').get(username);
+        const { rows } = await db.query('SELECT * FROM users WHERE username = $1', [username]);
+        const user = rows[0];
 
         if (!user || user.password !== password) {
             return res.status(401).json({

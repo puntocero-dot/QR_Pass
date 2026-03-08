@@ -26,29 +26,39 @@ router.use(authorizeManagement);
  * GET /api/clients
  * List all clients for this vendor's company
  */
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
     const db = getDB();
-    const clients = db.prepare(`
-    SELECT c.*, 
-      (SELECT COUNT(*) FROM vouchers WHERE client_id = c.id) as voucher_count,
-      (SELECT COALESCE(SUM(initial_value), 0) FROM vouchers WHERE client_id = c.id) as total_value,
-      (SELECT COALESCE(SUM(initial_value - current_value), 0) FROM vouchers WHERE client_id = c.id) as redeemed_value
-    FROM clients c
-    WHERE c.is_active = 1
-    ORDER BY c.name ASC
-  `).all();
+    try {
+        const { rows: clients } = await db.query(`
+            SELECT c.*, 
+              (SELECT COUNT(*) FROM vouchers WHERE client_id = c.id) as voucher_count,
+              (SELECT COALESCE(SUM(initial_value), 0) FROM vouchers WHERE client_id = c.id) as total_value,
+              (SELECT COALESCE(SUM(initial_value - current_value), 0) FROM vouchers WHERE client_id = c.id) as redeemed_value
+            FROM clients c
+            WHERE c.is_active = 1
+            ORDER BY c.name ASC
+        `);
 
-    res.json({
-        success: true,
-        clients: clients.map(c => ({ ...c, is_active: !!c.is_active }))
-    });
+        res.json({
+            success: true,
+            clients: clients.map(c => ({ 
+                ...c, 
+                is_active: !!c.is_active,
+                total_value: parseFloat(c.total_value),
+                redeemed_value: parseFloat(c.redeemed_value)
+            }))
+        });
+    } catch (err) {
+        console.error('Error fetching clients:', err);
+        res.status(500).json({ success: false, error: 'Error al obtener clientes' });
+    }
 });
 
 /**
  * POST /api/clients
  * Create a new client
  */
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
     const { name, trade_name, tax_id, email, phone, address, contact_person, notes } = req.body;
     const db = getDB();
 
@@ -63,10 +73,10 @@ router.post('/', (req, res) => {
     const id = uuidv4();
 
     try {
-        db.prepare(`
-      INSERT INTO clients (id, name, trade_name, tax_id, email, phone, address, contact_person, notes, access_token, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
+        await db.query(`
+            INSERT INTO clients (id, name, trade_name, tax_id, email, phone, address, contact_person, notes, access_token, created_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        `, [
             id,
             name.trim(),
             trade_name || '',
@@ -76,9 +86,9 @@ router.post('/', (req, res) => {
             address || '',
             contact_person || '',
             notes || '',
-            crypto.randomBytes(16).toString('hex'), // Initial access_token
+            crypto.randomBytes(16).toString('hex'),
             new Date().toISOString()
-        );
+        ]);
 
         res.json({
             success: true,
@@ -87,11 +97,7 @@ router.post('/', (req, res) => {
         });
     } catch (err) {
         console.error('Error creating client:', err);
-        res.status(500).json({
-            success: false,
-            error: 'Error al crear cliente',
-            code: 'INTERNAL_ERROR'
-        });
+        res.status(500).json({ success: false, error: 'Error al crear cliente' });
     }
 });
 
@@ -99,24 +105,24 @@ router.post('/', (req, res) => {
  * PUT /api/clients/:id
  * Update a client
  */
-router.put('/:id', (req, res) => {
+router.put('/:id', async (req, res) => {
     const { name, trade_name, tax_id, email, phone, address, contact_person, notes } = req.body;
     const db = getDB();
 
-    const existing = db.prepare('SELECT id FROM clients WHERE id = ?').get(req.params.id);
-    if (!existing) {
-        return res.status(404).json({ success: false, error: 'Cliente no encontrado' });
-    }
-
-    if (!name || !name.trim()) {
-        return res.status(400).json({ success: false, error: 'El nombre es requerido' });
-    }
-
     try {
-        db.prepare(`
-      UPDATE clients SET name=?, trade_name=?, tax_id=?, email=?, phone=?, address=?, contact_person=?, notes=?
-      WHERE id=?
-    `).run(
+        const { rows } = await db.query('SELECT id FROM clients WHERE id = $1', [req.params.id]);
+        if (rows.length === 0) {
+            return res.status(404).json({ success: false, error: 'Cliente no encontrado' });
+        }
+
+        if (!name || !name.trim()) {
+            return res.status(400).json({ success: false, error: 'El nombre es requerido' });
+        }
+
+        await db.query(`
+            UPDATE clients SET name=$1, trade_name=$2, tax_id=$3, email=$4, phone=$5, address=$6, contact_person=$7, notes=$8
+            WHERE id=$9
+        `, [
             name.trim(),
             trade_name || '',
             tax_id || '',
@@ -126,7 +132,7 @@ router.put('/:id', (req, res) => {
             contact_person || '',
             notes || '',
             req.params.id
-        );
+        ]);
 
         res.json({ success: true, message: 'Cliente actualizado' });
     } catch (err) {
@@ -134,47 +140,53 @@ router.put('/:id', (req, res) => {
     }
 });
 
-/**
- * DELETE /api/clients/:id
- * Soft-delete a client
- */
-router.delete('/:id', (req, res) => {
+router.delete('/:id', async (req, res) => {
     const db = getDB();
 
-    const existing = db.prepare('SELECT id FROM clients WHERE id = ?').get(req.params.id);
-    if (!existing) {
-        return res.status(404).json({ success: false, error: 'Cliente no encontrado' });
-    }
+    try {
+        const { rows } = await db.query('SELECT id FROM clients WHERE id = $1', [req.params.id]);
+        if (rows.length === 0) {
+            return res.status(404).json({ success: false, error: 'Cliente no encontrado' });
+        }
 
-    db.prepare('UPDATE clients SET is_active = 0 WHERE id = ?').run(req.params.id);
-    res.json({ success: true, message: 'Cliente eliminado' });
+        await db.query('UPDATE clients SET is_active = 0 WHERE id = $1', [req.params.id]);
+        res.json({ success: true, message: 'Cliente eliminado' });
+    } catch (err) {
+        res.status(500).json({ success: false, error: 'Error al eliminar' });
+    }
 });
 
 /**
  * GET /api/clients/:id/vouchers
  * Detailed report of vouchers for a specific client
  */
-router.get('/:id/vouchers', (req, res) => {
+router.get('/:id/vouchers', async (req, res) => {
     const db = getDB();
     const { generateQRPayload } = require('../utils/crypto');
 
-    const vouchers = db.prepare(`
-        SELECT * FROM vouchers 
-        WHERE client_id = ? 
-        ORDER BY issue_date DESC
-    `).all(req.params.id);
+    try {
+        const { rows: vouchers } = await db.query(`
+            SELECT * FROM vouchers 
+            WHERE client_id = $1 
+            ORDER BY issue_date DESC
+        `, [req.params.id]);
 
-    const enriched = vouchers.map(v => ({
-        ...v,
-        is_active: !!v.is_active,
-        qr_payload: generateQRPayload(v.id, v.hashed_code),
-        is_expired: new Date(v.expiry_date) < new Date()
-    }));
+        const enriched = vouchers.map(v => ({
+            ...v,
+            initial_value: parseFloat(v.initial_value),
+            current_value: parseFloat(v.current_value),
+            is_active: !!v.is_active,
+            qr_payload: generateQRPayload(v.id, v.hashed_code),
+            is_expired: new Date(v.expiry_date) < new Date()
+        }));
 
-    res.json({
-        success: true,
-        vouchers: enriched
-    });
+        res.json({
+            success: true,
+            vouchers: enriched
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, error: 'Error al obtener vales' });
+    }
 });
 
 module.exports = router;

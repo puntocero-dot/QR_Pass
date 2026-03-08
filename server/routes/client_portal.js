@@ -10,7 +10,7 @@ const router = express.Router();
 /**
  * POST /api/client-portal/login
  */
-router.post('/login', (req, res) => {
+router.post('/login', async (req, res) => {
     const { identifier, password } = req.body;
     const db = getDB();
 
@@ -20,12 +20,14 @@ router.post('/login', (req, res) => {
 
     try {
         // Find by Tax ID or exact Name
-        const client = db.prepare(`
+        const { rows } = await db.query(`
             SELECT * FROM clients 
-            WHERE (tax_id = ? OR name = ?) 
-            AND password = ? 
+            WHERE (tax_id = $1 OR name = $2) 
+            AND password = $3 
             AND is_active = 1
-        `).get(identifier, identifier, password);
+        `, [identifier, identifier, password]);
+        
+        const client = rows[0];
 
         if (!client) {
             return res.status(401).json({ success: false, error: 'Credenciales inválidas o cuenta inactiva' });
@@ -54,16 +56,20 @@ router.post('/login', (req, res) => {
 /**
  * GET /api/client-portal/portal
  */
-router.get('/portal', authenticateToken, authorizeRole('client'), (req, res) => {
+router.get('/portal', authenticateToken, authorizeRole('client'), async (req, res) => {
     const db = getDB();
     const clientId = req.user.id;
 
     try {
-        const client = db.prepare('SELECT id, name, trade_name FROM clients WHERE id = ?').get(clientId);
-        const vouchers = db.prepare('SELECT * FROM vouchers WHERE issuing_company_id = ?').all(clientId);
+        const { rows: clientRows } = await db.query('SELECT id, name, trade_name FROM clients WHERE id = $1', [clientId]);
+        const client = clientRows[0];
+        
+        const { rows: vouchers } = await db.query('SELECT * FROM vouchers WHERE client_id = $1', [clientId]);
 
         const processedVouchers = vouchers.map(v => ({
             ...v,
+            initial_value: parseFloat(v.initial_value),
+            current_value: parseFloat(v.current_value),
             qr_payload: generateQRPayload(v.id, v.hashed_code),
             is_expired: new Date(v.expiry_date) < new Date()
         }));
@@ -81,7 +87,7 @@ router.get('/portal', authenticateToken, authorizeRole('client'), (req, res) => 
 /**
  * POST /api/client-portal/assign-bulk
  */
-router.post('/assign-bulk', authenticateToken, authorizeRole('client'), (req, res) => {
+router.post('/assign-bulk', authenticateToken, authorizeRole('client'), async (req, res) => {
     const db = getDB();
     const { assignments } = req.body; // Array of { voucher_id, contact }
 
@@ -89,42 +95,43 @@ router.post('/assign-bulk', authenticateToken, authorizeRole('client'), (req, re
         return res.status(400).json({ success: false, error: 'Datos de asignación inválidos' });
     }
 
+    const client = await db.connect();
     try {
-        const updateStmt = db.prepare(`
-            UPDATE vouchers 
-            SET recipient_contact = ?, recipient_name = ?
-            WHERE id = ? AND issuing_company_id = ?
-        `);
+        await client.query('BEGIN');
+        
+        for (const item of assignments) {
+            await client.query(`
+                UPDATE vouchers 
+                SET recipient_contact = $1, recipient_name = $2
+                WHERE id = $3 AND client_id = $4
+            `, [item.contact, item.contact, item.voucher_id, req.user.id]);
+        }
 
-        const transaction = db.transaction((list) => {
-            for (const item of list) {
-                // Assuming recipient_name can also be the contact if only one is provided
-                updateStmt.run(item.contact, item.contact, item.voucher_id, req.user.id);
-            }
-        });
-
-        transaction(assignments);
+        await client.query('COMMIT');
         res.json({ success: true, count: assignments.length });
     } catch (err) {
+        await client.query('ROLLBACK');
         res.status(500).json({ success: false, error: err.message });
+    } finally {
+        client.release();
     }
 });
 
 /**
  * POST /api/client-portal/assign
  */
-router.post('/assign', authenticateToken, authorizeRole('client'), (req, res) => {
+router.post('/assign', authenticateToken, authorizeRole('client'), async (req, res) => {
     const { voucher_id, recipient_contact, recipient_name } = req.body;
     const db = getDB();
 
     try {
-        const result = db.prepare(`
+        const result = await db.query(`
             UPDATE vouchers 
-            SET recipient_name = ?, recipient_contact = ? 
-            WHERE id = ? AND issuing_company_id = ?
-        `).run(recipient_name || recipient_contact, recipient_contact, voucher_id, req.user.id);
+            SET recipient_name = $1, recipient_contact = $2 
+            WHERE id = $3 AND client_id = $4
+        `, [recipient_name || recipient_contact, recipient_contact, voucher_id, req.user.id]);
 
-        if (result.changes > 0) {
+        if (result.rowCount > 0) {
             res.json({ success: true });
         } else {
             res.status(404).json({ success: false, error: 'Vale no encontrado o no pertenece a la empresa' });

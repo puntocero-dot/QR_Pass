@@ -12,7 +12,7 @@ router.use(authMiddleware);
 /**
  * POST /api/vouchers/validate
  */
-router.post('/validate', (req, res) => {
+router.post('/validate', async (req, res) => {
     const { payload } = req.body;
     const db = getDB();
 
@@ -21,63 +21,73 @@ router.post('/validate', (req, res) => {
         return res.status(400).json({ success: false, error: verification.error });
     }
 
-    const voucher = db.prepare('SELECT * FROM vouchers WHERE id = ? AND hashed_code = ?')
-        .get(verification.voucherId, verification.hashedCode);
-
-    if (!voucher) return res.status(404).json({ success: false, error: 'Vale no encontrado' });
-    if (!voucher.is_active) return res.status(400).json({ success: false, error: 'Vale inactivo' });
-    if (new Date(voucher.expiry_date) < new Date()) return res.status(400).json({ success: false, error: 'Vale vencido' });
-
-    res.json({ success: true, voucher: sanitizeVoucher(voucher) });
-});
-
-/**
- * POST /api/vouchers/redeem
- */
-router.post('/redeem', (req, res) => {
-    const { voucher_id, amount, invoice_number } = req.body;
-    const db = getDB();
-
     try {
-        const voucher = db.prepare('SELECT * FROM vouchers WHERE id = ?').get(voucher_id);
+        const { rows } = await db.query('SELECT * FROM vouchers WHERE id = $1 AND hashed_code = $2', [verification.voucherId, verification.hashedCode]);
+        const voucher = rows[0];
+
         if (!voucher) return res.status(404).json({ success: false, error: 'Vale no encontrado' });
-        if (voucher.current_value < amount) return res.status(400).json({ success: false, error: 'Saldo insuficiente' });
+        if (!voucher.is_active) return res.status(400).json({ success: false, error: 'Vale inactivo' });
+        if (new Date(voucher.expiry_date) < new Date()) return res.status(400).json({ success: false, error: 'Vale vencido' });
 
-        const transaction = db.transaction(() => {
-            const newBalance = Math.round((voucher.current_value - amount) * 100) / 100;
-            db.prepare('UPDATE vouchers SET current_value = ? WHERE id = ?').run(newBalance, voucher_id);
-
-            db.prepare(`
-                INSERT INTO redemption_logs (id, voucher_id, timestamp, restaurant_id, cashier_id, amount_redeemed, invoice_number, action_type)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            `).run(uuidv4(), voucher_id, new Date().toISOString(), req.user.restaurant_id, req.user.cashier_id, amount, invoice_number || null, 'REDEMPTION');
-        });
-
-        transaction();
-        res.json({ success: true });
+        res.json({ success: true, voucher: sanitizeVoucher(voucher) });
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
     }
 });
 
 /**
+ * POST /api/vouchers/redeem
+ */
+router.post('/redeem', async (req, res) => {
+    const { voucher_id, amount, invoice_number } = req.body;
+    const db = getDB();
+    const client = await db.connect();
+
+    try {
+        const { rows } = await client.query('SELECT * FROM vouchers WHERE id = $1', [voucher_id]);
+        const voucher = rows[0];
+        
+        if (!voucher) return res.status(404).json({ success: false, error: 'Vale no encontrado' });
+        if (parseFloat(voucher.current_value) < amount) return res.status(400).json({ success: false, error: 'Saldo insuficiente' });
+
+        await client.query('BEGIN');
+        
+        const newBalance = Math.round((parseFloat(voucher.current_value) - amount) * 100) / 100;
+        await client.query('UPDATE vouchers SET current_value = $1 WHERE id = $2', [newBalance, voucher_id]);
+
+        await client.query(`
+            INSERT INTO redemption_logs (id, voucher_id, timestamp, restaurant_id, cashier_id, amount_redeemed, invoice_number, action_type, unique_nonce)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        `, [uuidv4(), voucher_id, new Date().toISOString(), req.user.restaurant_id, req.user.cashier_id, amount, invoice_number || null, 'REDEMPTION', uuidv4()]);
+
+        await client.query('COMMIT');
+        res.json({ success: true });
+    } catch (err) {
+        await client.query('ROLLBACK');
+        res.status(500).json({ success: false, error: err.message });
+    } finally {
+        client.release();
+    }
+});
+
+/**
  * GET /api/vouchers/redemptions/me
  */
-router.get('/redemptions/me', (req, res) => {
+router.get('/redemptions/me', async (req, res) => {
     const db = getDB();
     const cashierId = req.user.cashier_id;
 
     try {
-        const redemptions = db.prepare(`
+        const { rows } = await db.query(`
             SELECT r.*, v.issuing_company_name 
             FROM redemption_logs r
             JOIN vouchers v ON r.voucher_id = v.id
-            WHERE r.cashier_id = ? 
-            AND date(r.timestamp) = date('now', 'localtime')
+            WHERE r.cashier_id = $1 
+            AND CAST(r.timestamp AS DATE) = CURRENT_DATE
             ORDER BY r.timestamp DESC
-        `).all(cashierId);
+        `, [cashierId]);
 
-        res.json({ success: true, redemptions });
+        res.json({ success: true, redemptions: rows });
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
     }

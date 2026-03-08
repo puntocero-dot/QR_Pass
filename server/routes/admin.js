@@ -8,7 +8,7 @@ const router = express.Router();
 /**
  * GET /api/admin/stats
  */
-router.get('/stats', authenticateToken, authorizeRole('admin', 'vendor'), (req, res) => {
+router.get('/stats', authenticateToken, authorizeRole('admin', 'vendor'), async (req, res) => {
     const db = getDB();
     const isVendor = req.user.role === 'vendor';
     const companyId = req.user.company_id || req.user.vendor_id;
@@ -17,20 +17,29 @@ router.get('/stats', authenticateToken, authorizeRole('admin', 'vendor'), (req, 
         let totalVouchers, totalRedeemed;
         
         if (isVendor) {
-            totalVouchers = db.prepare('SELECT COUNT(*) as count FROM vouchers WHERE issuing_company_id = ?').get(companyId).count;
-            totalRedeemed = db.prepare(`
+            const vRes = await db.query('SELECT COUNT(*) as count FROM vouchers WHERE issuing_company_id = $1', [companyId]);
+            totalVouchers = parseInt(vRes.rows[0].count);
+            
+            const rRes = await db.query(`
                 SELECT COUNT(*) as count 
                 FROM redemption_logs rl
                 JOIN vouchers v ON rl.voucher_id = v.id
-                WHERE v.issuing_company_id = ?
-            `).get(companyId).count;
+                WHERE v.issuing_company_id = $1
+            `, [companyId]);
+            totalRedeemed = parseInt(rRes.rows[0].count);
         } else {
-            totalVouchers = db.prepare('SELECT COUNT(*) as count FROM vouchers').get().count;
-            totalRedeemed = db.prepare('SELECT COUNT(*) as count FROM redemption_logs').get().count;
+            const vRes = await db.query('SELECT COUNT(*) as count FROM vouchers');
+            totalVouchers = parseInt(vRes.rows[0].count);
+            
+            const rRes = await db.query('SELECT COUNT(*) as count FROM redemption_logs');
+            totalRedeemed = parseInt(rRes.rows[0].count);
         }
 
-        const activeClients = db.prepare('SELECT COUNT(*) as count FROM clients WHERE is_active = 1').get().count;
-        const totalUsers = db.prepare('SELECT COUNT(*) as count FROM users').get().count;
+        const cRes = await db.query('SELECT COUNT(*) as count FROM clients WHERE is_active = 1');
+        const activeClients = parseInt(cRes.rows[0].count);
+        
+        const uRes = await db.query('SELECT COUNT(*) as count FROM users');
+        const totalUsers = parseInt(uRes.rows[0].count);
 
         res.json({
             success: true,
@@ -50,11 +59,11 @@ router.get('/stats', authenticateToken, authorizeRole('admin', 'vendor'), (req, 
 /**
  * GET /api/admin/users
  */
-router.get('/users', authenticateToken, authorizeRole('admin', 'vendor'), (req, res) => {
+router.get('/users', authenticateToken, authorizeRole('admin', 'vendor'), async (req, res) => {
     const db = getDB();
     try {
-        const users = db.prepare('SELECT id, username, role, full_name, related_id, created_at FROM users').all();
-        res.json({ success: true, users });
+        const { rows } = await db.query('SELECT id, username, role, full_name, related_id, created_at FROM users');
+        res.json({ success: true, users: rows });
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
     }
@@ -64,32 +73,31 @@ router.get('/users', authenticateToken, authorizeRole('admin', 'vendor'), (req, 
  * POST /api/admin/users
  * Create or Update user
  */
-router.post('/users', authenticateToken, authorizeRole('admin', 'vendor'), (req, res) => {
+router.post('/users', authenticateToken, authorizeRole('admin', 'vendor'), async (req, res) => {
     const db = getDB();
     const { id, username, password, role, full_name, related_id } = req.body;
 
     try {
         if (id) {
             // Update
-            let query = 'UPDATE users SET username = ?, role = ?, full_name = ?, related_id = ?';
+            let query = 'UPDATE users SET username = $1, role = $2, full_name = $3, related_id = $4';
             const params = [username, role, full_name, related_id];
             
             if (password && password !== '********') {
-                query += ', password = ?';
+                query += ', password = $' + (params.length + 1);
                 params.push(password);
             }
             
-            query += ' WHERE id = ?';
+            query += ' WHERE id = $' + (params.length + 1);
             params.push(id);
             
-            db.prepare(query).run(...params);
+            await db.query(query, params);
         } else {
             // Create
-            const stmt = db.prepare(`
+            await db.query(`
                 INSERT INTO users (id, username, password, role, full_name, related_id, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            `);
-            stmt.run(uuidv4(), username, password, role, full_name, related_id, new Date().toISOString());
+                VALUES ($1, $2, $3, $4, $5, $6, $7)
+            `, [uuidv4(), username, password, role, full_name, related_id, new Date().toISOString()]);
         }
         res.json({ success: true });
     } catch (err) {
@@ -100,10 +108,10 @@ router.post('/users', authenticateToken, authorizeRole('admin', 'vendor'), (req,
 /**
  * DELETE /api/admin/users/:id
  */
-router.delete('/users/:id', authenticateToken, authorizeRole('admin'), (req, res) => {
+router.delete('/users/:id', authenticateToken, authorizeRole('admin'), async (req, res) => {
     const db = getDB();
     try {
-        db.prepare('DELETE FROM users WHERE id = ?').run(req.params.id);
+        await db.query('DELETE FROM users WHERE id = $1', [req.params.id]);
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
@@ -113,19 +121,19 @@ router.delete('/users/:id', authenticateToken, authorizeRole('admin'), (req, res
 /**
  * GET /api/admin/vouchers
  */
-router.get('/vouchers', authenticateToken, authorizeRole('admin'), (req, res) => {
+router.get('/vouchers', authenticateToken, authorizeRole('admin'), async (req, res) => {
     const db = getDB();
     const { generateQRPayload } = require('../utils/crypto');
     try {
-        const vouchers = db.prepare(`
+        const { rows } = await db.query(`
             SELECT v.*, c.name as client_name 
             FROM vouchers v 
             LEFT JOIN clients c ON v.client_id = c.id
             ORDER BY v.issue_date DESC
             LIMIT 1000
-        `).all();
+        `);
         
-        const enriched = vouchers.map(v => ({
+        const enriched = rows.map(v => ({
             ...v,
             qr_payload: generateQRPayload(v.id, v.hashed_code)
         }));

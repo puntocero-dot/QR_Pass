@@ -44,17 +44,27 @@ app.use((err, req, res, next) => {
     });
 });
 
-// Initialize DB
-initDB();
+// Main app startup
+async function startServer() {
+  try {
+    // Initialize Database
+    await initDB();
+    
+    // Seed demo data
+    await seedDemoData();
 
-// Seeding
-seedDemoData();
+    app.listen(PORT, () => {
+      console.log(`🐔 ═══════════════════════════════════════════════════`);
+      console.log(`   Servidor activo en: http://localhost:${PORT}`);
+      console.log(`   RESTAURANTES — Sistema de Canje de Vales`);
+      console.log(`   ═══════════════════════════════════════════════════`);
+    });
+  } catch (err) {
+    console.error('Failed to start server:', err);
+    process.exit(1);
+  }
+}
 
-app.listen(PORT, () => {
-    console.log(`\n🐔 ═══════════════════════════════════════════════════`);
-    console.log(`   RESTAURANTES — Sistema de Canje de Vales`);
-    console.log(`   Servidor activo en: http://localhost:${PORT}`);
-    console.log(`   ═══════════════════════════════════════════════════\n`);
-});
+startServer();
 
 module.exports = app;
