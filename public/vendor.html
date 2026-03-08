@@ -7,7 +7,7 @@
     <meta name="description" content="Portal de Vendedor — Generación de Vales QR | Pollo Campero El Salvador">
     <meta name="theme-color" content="#C62828">
     <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://web-production-c8dbf.up.railway.app;">
+        content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://web-production-c8dbf.up.railway.app https://cdn.jsdelivr.net;">
     <title>Pollo Campero — Portal Vendedor</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -549,6 +549,15 @@
             align-items: center;
             gap: var(--space-sm);
         }
+
+        #view-checking.active {
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            flex-direction: column;
+            gap: 20px;
+        }
     </style>
 </head>
 
@@ -583,8 +592,7 @@
         </header>
 
         <!-- ─── Session Check ─── -->
-        <section id="view-checking" class="view active"
-            style="display:flex; align-items:center; justify-content:center; height:100vh; flex-direction:column; gap:20px;">
+        <section id="view-checking" class="view active">
             <div class="btn-loader" style="width:40px; height:40px; border-width:4px;"></div>
             <p style="color:var(--text-secondary); font-weight:500;">Verificando sesión...</p>
         </section>
