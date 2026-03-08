@@ -133,9 +133,14 @@ function runMigrations(db) {
   } catch (e) { /* ignore */ }
 
   try {
+    const clientCols = db.prepare("PRAGMA table_info(clients)").all();
     if (!clientCols.find(c => c.name === 'password')) {
       db.exec("ALTER TABLE clients ADD COLUMN password TEXT");
       console.log('✅ Migración: columna password agregada a clients');
+    }
+    if (!clientCols.find(c => c.name === 'access_token')) {
+      db.exec("ALTER TABLE clients ADD COLUMN access_token TEXT UNIQUE");
+      console.log('✅ Migración: columna access_token agregada a clients');
     }
 
     // Generate tokens and default passwords
