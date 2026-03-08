@@ -1,4 +1,4 @@
-const CACHE_NAME = 'campero-canje-v2';
+const CACHE_NAME = 'restaurantes-v1';
 const STATIC_ASSETS = [
     '/',
     '/index.html',

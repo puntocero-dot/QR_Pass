@@ -53,7 +53,7 @@ if (process.env.SEED_DATA === 'true') {
 
 app.listen(PORT, () => {
     console.log(`\n🐔 ═══════════════════════════════════════════════════`);
-    console.log(`   POLLO CAMPERO — Sistema de Canje de Vales`);
+    console.log(`   RESTAURANTES — Sistema de Canje de Vales`);
     console.log(`   Servidor activo en: http://localhost:${PORT}`);
     console.log(`   ═══════════════════════════════════════════════════\n`);
 });

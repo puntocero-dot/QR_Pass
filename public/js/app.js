@@ -7,8 +7,8 @@
 
     // ── State ────────────────────────────────────
     const state = {
-        token: localStorage.getItem('campero_token') || null,
-        user: JSON.parse(localStorage.getItem('campero_user') || 'null'),
+        token: localStorage.getItem('restaurantes_token') || null,
+        user: JSON.parse(localStorage.getItem('restaurantes_user') || 'null'),
         currentVoucher: null,
         scanner: null,
         scanning: false
@@ -148,8 +148,8 @@
                 state.token = res.token;
                 state.user = res.user;
                 // Unified keys for both portals
-                localStorage.setItem('campero_token', res.token);
-                localStorage.setItem('campero_user', JSON.stringify(res.user));
+                localStorage.setItem('restaurantes_token', res.token);
+                localStorage.setItem('restaurantes_user', JSON.stringify(res.user));
 
                 if (res.user.role === 'vendor') {
                     showToast('Redirigiendo a Portal de Ventas...', 'success');
@@ -180,8 +180,8 @@
         state.token = null;
         state.user = null;
         state.currentVoucher = null;
-        localStorage.removeItem('campero_token');
-        localStorage.removeItem('campero_user');
+        localStorage.removeItem('restaurantes_token');
+        localStorage.removeItem('restaurantes_user');
 
         if (state.scanner) {
             try { state.scanner.stop().catch(() => { }); } catch (e) { }

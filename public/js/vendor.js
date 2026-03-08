@@ -7,8 +7,8 @@
 
     // ── State ────────────────────────────────────
     const state = {
-        token: localStorage.getItem('campero_token') || null,
-        user: JSON.parse(localStorage.getItem('campero_user') || 'null'),
+        token: localStorage.getItem('restaurantes_token') || null,
+        user: JSON.parse(localStorage.getItem('restaurantes_user') || 'null'),
         vouchers: [],
         clients: [],
         lastBatch: null
@@ -240,8 +240,8 @@
     function handleLogout() {
         state.token = null;
         state.user = null;
-        localStorage.removeItem('campero_token');
-        localStorage.removeItem('campero_user');
+        localStorage.removeItem('restaurantes_token');
+        localStorage.removeItem('restaurantes_user');
         window.location.href = '/index.html';
     }
 

@@ -1,7 +1,7 @@
 {
   "name": "campero-voucher-pwa",
   "version": "1.0.0",
-  "description": "Pollo Campero El Salvador - Voucher Redemption PWA",
+  "description": "Sistema de gestión de vales digitales para Restaurantes",
   "main": "server/server.js",
   "scripts": {
     "dev": "node server/server.js",

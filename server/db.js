@@ -211,9 +211,9 @@ function seedDemoData() {
   insertMany(vouchers);
 
   // Print QR codes for testing
-  console.log('\n🎫 ════════════════════════════════════════════════════');
-  console.log('   CÓDIGOS QR DE PRUEBA (copiar y pegar en el escáner)');
-  console.log('   ════════════════════════════════════════════════════\n');
+  console.log(`\n🐔 ═══════════════════════════════════════════════════`);
+  console.log(`   RESTAURANTES — Base de Datos Conectada`);
+  console.log(`   ═══════════════════════════════════════════════════\n`);
 
   for (const v of vouchers) {
     const qrPayload = generateQRPayload(v.id, v.hashed_code);

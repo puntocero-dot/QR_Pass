@@ -142,8 +142,8 @@
     async function handleAssign(e) {
         e.preventDefault();
         const data = {
-            token: state.token,
-            voucher_id: $('#send-voucher-id').value,
+            token: localStorage.getItem('restaurantes_token') || null,
+            user: JSON.parse(localStorage.getItem('restaurantes_user') || 'null'),
             recipient_name: $('#recipient-name').value,
             recipient_contact: $('#recipient-contact').value
         };
@@ -168,6 +168,9 @@
 
                 closeModal('send-modal');
                 renderVouchers();
+
+                localStorage.removeItem('restaurantes_token');
+                localStorage.removeItem('restaurantes_user');
 
                 // Mock distribution (WhatsApp link)
                 if (data.recipient_contact) {
