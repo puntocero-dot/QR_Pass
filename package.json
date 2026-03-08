@@ -5,7 +5,7 @@
   "main": "server/server.js",
   "scripts": {
     "dev": "node server/server.js",
-    "start": "node --omit=dev server/server.js",
+    "start": "node server/server.js",
     "seed": "node server/seed.js"
   },
   "keywords": [
