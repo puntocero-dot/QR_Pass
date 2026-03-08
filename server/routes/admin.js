@@ -54,12 +54,18 @@ router.post('/users', authenticateToken, authorizeRole('admin', 'vendor'), (req,
     try {
         if (id) {
             // Update
-            const stmt = db.prepare(`
-                UPDATE users 
-                SET username = ?, password = ?, role = ?, full_name = ?, related_id = ?
-                WHERE id = ?
-            `);
-            stmt.run(username, password, role, full_name, related_id, id);
+            let query = 'UPDATE users SET username = ?, role = ?, full_name = ?, related_id = ?';
+            const params = [username, role, full_name, related_id];
+            
+            if (password && password !== '********') {
+                query += ', password = ?';
+                params.push(password);
+            }
+            
+            query += ' WHERE id = ?';
+            params.push(id);
+            
+            db.prepare(query).run(...params);
         } else {
             // Create
             const stmt = db.prepare(`
