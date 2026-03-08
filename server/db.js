@@ -10,7 +10,7 @@ if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
-const DB_PATH = path.join(DATA_DIR, 'campero.db');
+const DB_PATH = path.join(DATA_DIR, 'restaurantes.db');
 console.log(`📦 Database path: ${DB_PATH}`);
 
 let db;

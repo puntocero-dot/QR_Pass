@@ -1,7 +1,7 @@
 {
     "name": "Restaurantes — Canje de Vales",
     "short_name": "Restaurantes Canje",
-    "description": "Sistema de Canje de Vales QR para restaurantes Pollo Campero El Salvador",
+    "description": "Sistema de Canje de Vales QR para Restaurantes El Salvador",
     "start_url": "/",
     "display": "standalone",
     "orientation": "portrait",

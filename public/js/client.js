@@ -141,9 +141,10 @@
 
     async function handleAssign(e) {
         e.preventDefault();
+        const voucher_id = $('#send-voucher-id').value;
         const data = {
-            token: localStorage.getItem('restaurantes_token') || null,
-            user: JSON.parse(localStorage.getItem('restaurantes_user') || 'null'),
+            token: state.token,
+            voucher_id: voucher_id,
             recipient_name: $('#recipient-name').value,
             recipient_contact: $('#recipient-contact').value
         };
@@ -160,7 +161,7 @@
 
             if (res.success) {
                 // Update local state
-                const v = state.vouchers.find(v => v.id === data.voucher_id);
+                const v = state.vouchers.find(v => v.id === voucher_id);
                 if (v) {
                     v.recipient_name = data.recipient_name;
                     v.recipient_contact = data.recipient_contact;
@@ -169,12 +170,9 @@
                 closeModal('send-modal');
                 renderVouchers();
 
-                localStorage.removeItem('restaurantes_token');
-                localStorage.removeItem('restaurantes_user');
-
                 // Mock distribution (WhatsApp link)
                 if (data.recipient_contact) {
-                    const msg = encodeURIComponent(`Hola ${data.recipient_name}, tu empleador te ha enviado un pase de consumo de Pollo Campero por $${v.initial_value.toFixed(2)}. Puedes usarlo aquí: ${window.location.href}`);
+                    const msg = encodeURIComponent(`Hola ${data.recipient_name}, tu empleador te ha enviado un pase de consumo de Restaurantes por $${v.initial_value.toFixed(2)}. Puedes usarlo aquí: ${window.location.href}`);
                     if (data.recipient_contact.includes('+') || !isNaN(data.recipient_contact)) {
                         window.open(`https://wa.me/${data.recipient_contact.replace(/\D/g, '')}?text=${msg}`);
                     }

@@ -1,5 +1,5 @@
 {
-  "name": "campero-voucher-pwa",
+  "name": "restaurantes-voucher-pwa",
   "version": "1.0.0",
   "description": "Sistema de gestión de vales digitales para Restaurantes",
   "main": "server/server.js",

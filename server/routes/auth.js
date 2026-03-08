@@ -7,25 +7,25 @@ const router = express.Router();
 // Demo credentials — using environment variables for production
 const STAFF_CREDENTIALS = {
     cajero: {
-        password: process.env.CASHIER_PASS || 'campero2024',
+        password: process.env.CASHIER_PASS || 'restaurantes2024',
         role: 'cashier',
         cashier_id: 'CAJ-001',
-        restaurant_id: 'CAMPERO_METROCENTRO_SS',
+        restaurant_id: 'RESTAURANTE_METROCENTRO_SS',
         restaurant_name: 'SS Metrocentro'
     },
     admin: {
         password: process.env.ADMIN_PASS || 'admin2024',
         role: 'cashier',
         cashier_id: 'ADM-001',
-        restaurant_id: 'CAMPERO_METROCENTRO_SS',
+        restaurant_id: 'RESTAURANTE_METROCENTRO_SS',
         restaurant_name: 'SS Metrocentro'
     },
     vendedor: {
         password: process.env.VENDOR_PASS || 'vendedor2024',
         role: 'vendor',
         vendor_id: 'VEND-001',
-        company_name: 'Tigo El Salvador',
-        company_id: 'TIGO-SV-001'
+        company_name: 'Empresa Demo',
+        company_id: 'DEMO-SV-001'
     }
 };
 
