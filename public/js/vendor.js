@@ -18,8 +18,9 @@
     const $$ = (sel) => document.querySelectorAll(sel);
 
     const views = {
-        checking: $('#view-checking'),
-        dashboard: $('#view-dashboard')
+        'view-checking': $('#view-checking'),
+        'view-dashboard': $('#view-dashboard'),
+        'view-client-details': $('#view-client-details')
     };
 
     const header = $('#app-header');
@@ -48,7 +49,7 @@
     }
 
     function showDashboard() {
-        showView('dashboard');
+        showView('view-dashboard');
         header.classList.remove('hidden');
         if (state.user) {
             $('#vendor-company-name').textContent = state.user.company_name || 'Vendedor';
@@ -59,11 +60,19 @@
 
     // ── Events ───────────────────────────────────
     function bindEvents() {
-        $('#btn-logout').addEventListener('click', handleLogout);
-        $('#create-form').addEventListener('submit', handleCreate);
-        $('#btn-close-modal').addEventListener('click', closeModal);
+        $('#btn-refresh-vouchers').addEventListener('click', loadVouchers);
+        $('#filter-client').addEventListener('change', () => renderVoucherTable(state.vouchers));
+        $('#btn-back-clients').addEventListener('click', () => {
+            $$('.vendor-tab').forEach(t => t.classList.remove('active'));
+            $$('.vendor-tab[data-tab="clients"]').forEach(t => t.classList.add('active'));
+            $$('.tab-content').forEach(c => c.classList.remove('active'));
+            $('#tab-clients').classList.add('active');
+            showView('view-dashboard');
+        });
         $('#btn-copy-qr').addEventListener('click', copyQRCode);
         $('#btn-print-batch').addEventListener('click', () => window.print());
+        $('#btn-back-to-dashboard').addEventListener('click', showDashboard);
+
 
         // Close QR modal on overlay click
         $('#qr-modal').addEventListener('click', (e) => {
@@ -145,26 +154,42 @@
     // ── Stats ────────────────────────────────────
     function renderStats(stats) {
         $('#stat-total').textContent = stats.total_vouchers;
-        $('#stat-active').textContent = stats.active;
-        $('#stat-expired').textContent = stats.expired;
+        $('#stat-vouchers').textContent = stats.total_vouchers;
+        $('#stat-total-value').textContent = `$${stats.total_initial_value.toFixed(2)}`;
         $('#stat-redeemed').textContent = `$${stats.total_redeemed_value.toFixed(2)}`;
+
+        // Update Client Filter dropdown
+        const filterSelect = $('#filter-client');
+        const currentFilter = filterSelect.value;
+        filterSelect.innerHTML = '<option value="">Todos los Clientes</option>';
+        state.clients.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.id;
+            opt.textContent = c.name;
+            filterSelect.appendChild(opt);
+        });
+        filterSelect.value = currentFilter;
     }
 
     // ── Voucher Table ────────────────────────────
     function renderVoucherTable(vouchers) {
-        if (vouchers.length === 0) {
+        const clientIdFilter = $('#filter-client').value;
+        const filtered = clientIdFilter ? vouchers.filter(v => v.client_id === clientIdFilter) : vouchers;
+
+        if (filtered.length === 0) {
             $('#empty-state').classList.remove('hidden');
             $('#voucher-table-wrap').classList.add('hidden');
             return;
         }
 
         $('#empty-state').classList.add('hidden');
+        $('#voucher-table-wrap').classList.add('active'); // Ensure table is visible
         $('#voucher-table-wrap').classList.remove('hidden');
 
         const tbody = $('#voucher-table-body');
         tbody.innerHTML = '';
 
-        vouchers.forEach((v, i) => {
+        filtered.forEach((v, i) => {
             const isExpired = v.is_expired;
             const isFullyUsed = v.current_value <= 0;
             let statusText, statusClass;

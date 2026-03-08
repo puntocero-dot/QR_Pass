@@ -19,6 +19,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/vouchers', require('./routes/vouchers'));
 app.use('/api/vendor', require('./routes/vendor'));
 app.use('/api/clients', require('./routes/clients'));
+app.use('/api/client-portal', require('./routes/client_portal'));
 
 // Health check
 app.get('/api/health', (req, res) => {

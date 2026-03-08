@@ -2,6 +2,7 @@ const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const { getDB } = require('../db');
 const { authMiddleware } = require('../middleware/auth');
+const crypto = require('crypto');
 
 const router = express.Router();
 
@@ -63,8 +64,8 @@ router.post('/', (req, res) => {
 
     try {
         db.prepare(`
-      INSERT INTO clients (id, name, trade_name, tax_id, email, phone, address, contact_person, notes, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO clients (id, name, trade_name, tax_id, email, phone, address, contact_person, notes, access_token, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
             id,
             name.trim(),
@@ -75,6 +76,7 @@ router.post('/', (req, res) => {
             address || '',
             contact_person || '',
             notes || '',
+            crypto.randomBytes(16).toString('hex'), // Initial access_token
             new Date().toISOString()
         );
 
@@ -146,6 +148,33 @@ router.delete('/:id', (req, res) => {
 
     db.prepare('UPDATE clients SET is_active = 0 WHERE id = ?').run(req.params.id);
     res.json({ success: true, message: 'Cliente eliminado' });
+});
+
+/**
+ * GET /api/clients/:id/vouchers
+ * Detailed report of vouchers for a specific client
+ */
+router.get('/:id/vouchers', (req, res) => {
+    const db = getDB();
+    const { generateQRPayload } = require('../utils/crypto');
+
+    const vouchers = db.prepare(`
+        SELECT * FROM vouchers 
+        WHERE client_id = ? 
+        ORDER BY issue_date DESC
+    `).all(req.params.id);
+
+    const enriched = vouchers.map(v => ({
+        ...v,
+        is_active: !!v.is_active,
+        qr_payload: generateQRPayload(v.id, v.hashed_code),
+        is_expired: new Date(v.expiry_date) < new Date()
+    }));
+
+    res.json({
+        success: true,
+        vouchers: enriched
+    });
 });
 
 module.exports = router;

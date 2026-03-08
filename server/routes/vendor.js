@@ -140,7 +140,7 @@ router.get('/vouchers', (req, res) => {
     LEFT JOIN clients c ON v.client_id = c.id
     WHERE v.issuing_company_id = ?
     ORDER BY v.issue_date DESC
-    LIMIT 200
+    LIMIT 2000
   `).all(req.user.company_id);
 
     // Add QR payloads to each

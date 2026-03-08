@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Portal de Clientes - QR Pass</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent-orange: #FF9800;
+            --bg-dark: #0A0A0B;
+            --bg-secondary: #141416;
+            --bg-card: #1C1C1F;
+            --text-primary: #FFFFFF;
+            --text-secondary: #A1A1AA;
+            --border-color: #27272A;
+            --success: #10B981;
+            --error: #EF4444;
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 32px;
+            --radius-md: 12px;
+            --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: var(--space-md);
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-lg) 0;
+            margin-bottom: var(--space-xl);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo {
+            font-weight: 800;
+            font-size: 1.4rem;
+            letter-spacing: -0.5px;
+            color: var(--accent-orange);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .client-info {
+            text-align: right;
+        }
+
+        .client-info h1 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .client-info span {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-md);
+            margin-bottom: var(--space-xl);
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            padding: var(--space-lg);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            display: block;
+            margin-bottom: var(--space-xs);
+            font-weight: 500;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        /* Vouchers */
+        .section-header {
+            margin-bottom: var(--space-lg);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .section-header h2 {
+            font-size: 1.35rem;
+            font-weight: 700;
+        }
+
+        .voucher-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: var(--space-md);
+        }
+
+        .voucher-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            padding: var(--space-md);
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .voucher-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent-orange);
+        }
+
+        .v-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: var(--space-md);
+        }
+
+        .v-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--accent-orange);
+        }
+
+        .v-status {
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-active {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+        }
+
+        .status-used {
+            background: rgba(161, 161, 170, 0.15);
+            color: var(--text-secondary);
+        }
+
+        .status-expired {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--error);
+        }
+
+        .v-details {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: var(--space-md);
+        }
+
+        .v-recipient {
+            font-size: 0.8rem;
+            background: rgba(255, 152, 0, 0.05);
+            padding: 8px;
+            border-radius: 8px;
+            margin-bottom: var(--space-md);
+            border-left: 3px solid var(--accent-orange);
+        }
+
+        .v-recipient strong {
+            color: var(--text-primary);
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .v-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-sm);
+        }
+
+        /* Buttons */
+        .btn {
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            border: none;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--accent-orange);
+            color: white;
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-ghost:hover {
+            border-color: var(--text-secondary);
+            color: var(--text-primary);
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            items-center: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: var(--space-md);
+            opacity: 0;
+            pointer-events: none;
+            transition: 0.3s;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: var(--space-lg);
+            width: 100%;
+            max-width: 440px;
+            border: 1px solid var(--border-color);
+        }
+
+        .qr-placeholder {
+            background: white;
+            margin: var(--space-lg) auto;
+            width: 200px;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .qr-placeholder img {
+            max-width: 100%;
+        }
+
+        .input-group {
+            margin-bottom: var(--space-md);
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .input-group input,
+        .input-group textarea {
+            width: 100%;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            font-family: inherit;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab-btn.active {
+            color: var(--accent-orange);
+            border-color: var(--accent-orange);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: var(--space-xl);
+            color: var(--text-secondary);
+        }
+
+        /* Loader */
+        .loader {
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: var(--accent-orange);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 600px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .v-actions {
+                grid-template-columns: 1fr;
+            }
+
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .client-info {
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container" id="app">
+        <!-- Loading State -->
+        <div id="loader-view" class="empty-state" style="margin-top: 100px;">
+            <div class="loader" style="margin: 0 auto var(--space-md);"></div>
+            <p>Verificando acceso al portal...</p>
+        </div>
+
+        <div id="main-view" class="hidden">
+            <header>
+                <div class="logo">🎟️ QR Pass</div>
+                <div class="client-info">
+                    <h1 id="client-name">Empresa</h1>
+                    <span id="client-id">Portal Corporativo</span>
+                </div>
+            </header>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span class="stat-label">Vales Disponibles</span>
+                    <span class="stat-value" id="stat-count">0</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Total en Saldo</span>
+                    <span class="stat-value" id="stat-value">$0.00</span>
+                </div>
+            </div>
+
+            <div class="section-header">
+                <h2>Tus Vales Emitidos</h2>
+                <div style="display:flex; gap:10px;">
+                    <button class="tab-btn active" data-tab="all">Todos</button>
+                    <button class="tab-btn" data-tab="assigned">Repartidos</button>
+                </div>
+            </div>
+
+            <div id="vouchers-wrap" class="voucher-grid">
+                <!-- Vouchers loaded here -->
+            </div>
+
+            <div id="empty-state" class="empty-state hidden">
+                <p>Aún no tienes vales asignados.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR Modal -->
+    <div class="modal" id="qr-modal">
+        <div class="modal-content">
+            <h3 style="text-align:center;">Vale Canjeable</h3>
+            <div id="qr-container" class="qr-placeholder"></div>
+            <p id="qr-value"
+                style="text-align:center; font-size:1.4rem; font-weight:800; color:var(--accent-orange); margin-bottom:4px;">
+                $0.00</p>
+            <p id="qr-info"
+                style="text-align:center; font-size:0.85rem; color:var(--text-secondary); margin-bottom:var(--space-lg);">
+                Escanea este código en el mostrador</p>
+            <button class="btn btn-ghost" style="width:100%;" onclick="closeModal('qr-modal')">Cerrar</button>
+        </div>
+    </div>
+
+    <!-- Send/Assign Modal -->
+    <div class="modal" id="send-modal">
+        <div class="modal-content">
+            <h3>Repartir Vale</h3>
+            <p style="color:var(--text-secondary); font-size:0.85rem; margin-bottom:var(--space-md);">Identifica a quién
+                pertenece este vale para enviarlo.</p>
+            <form id="send-form">
+                <input type="hidden" id="send-voucher-id">
+                <div class="input-group">
+                    <label>Nombre del Empleado</label>
+                    <input type="text" id="recipient-name" placeholder="Ej: Juan Pérez" required>
+                </div>
+                <div class="input-group">
+                    <label>Email o WhatsApp (Opcional)</label>
+                    <input type="text" id="recipient-contact" placeholder="juan@ejemplo.com o +503...">
+                </div>
+                <div class="v-actions" style="margin-top:var(--space-lg);">
+                    <button type="submit" class="btn btn-primary">Registrar</button>
+                    <button type="button" class="btn btn-ghost" onclick="closeModal('send-modal')">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+    <script src="js/client.js"></script>
+</body>
+
+</html>

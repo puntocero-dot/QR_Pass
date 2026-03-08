@@ -33,6 +33,7 @@ function initDB() {
       address TEXT DEFAULT '',
       contact_person TEXT DEFAULT '',
       notes TEXT DEFAULT '',
+      access_token TEXT UNIQUE,
       created_at TEXT NOT NULL,
       is_active INTEGER DEFAULT 1
     );
@@ -51,6 +52,8 @@ function initDB() {
       client_id TEXT DEFAULT '',
       issue_date TEXT NOT NULL,
       expiry_date TEXT NOT NULL,
+      recipient_name TEXT DEFAULT '',
+      recipient_contact TEXT DEFAULT '',
       is_active INTEGER DEFAULT 1,
       use_type TEXT DEFAULT 'Multiple' CHECK(use_type IN ('Single', 'Multiple'))
     );
@@ -99,7 +102,20 @@ function runMigrations(db) {
       db.exec("ALTER TABLE vouchers ADD COLUMN client_id TEXT DEFAULT ''");
       console.log('✅ Migración: columna client_id agregada a vouchers');
     }
-  } catch (e) { /* ignore if already exists */ }
+    if (!cols.find(c => c.name === 'recipient_name')) {
+      db.exec("ALTER TABLE vouchers ADD COLUMN recipient_name TEXT DEFAULT ''");
+      db.exec("ALTER TABLE vouchers ADD COLUMN recipient_contact TEXT DEFAULT ''");
+      console.log('✅ Migración: campos de destinatario agregados a vouchers');
+    }
+  } catch (e) { /* ignore */ }
+
+  try {
+    const clientCols = db.prepare("PRAGMA table_info(clients)").all();
+    if (!clientCols.find(c => c.name === 'access_token')) {
+      db.exec("ALTER TABLE clients ADD COLUMN access_token TEXT UNIQUE");
+      console.log('✅ Migración: columna access_token agregada a clients');
+    }
+  } catch (e) { /* ignore */ }
 
   // Remove FK constraint from redemption_logs by recreating without it
   // (SQLite doesn't support dropping FKs, but our new CREATE skips the FK)

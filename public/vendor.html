@@ -826,6 +826,62 @@
         </div>
     </div>
 
+    <!-- Client Details / Report View -->
+    <div id="view-client-details" class="view section-container hidden">
+        <div class="tab-header"
+            style="margin-bottom:var(--space-lg); display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <button id="btn-back-clients" class="btn btn-ghost btn-sm" style="margin-bottom:var(--space-xs);">←
+                    Volver a Clientes</button>
+                <h2 id="detail-client-name">Nombre del Cliente</h2>
+                <p id="detail-client-summary" class="text-secondary">Resumen de facturación y vales</p>
+            </div>
+            <div id="client-portal-link-box" class="restaurant-badge"
+                style="background:var(--bg-card); border: 1px dashed var(--accent-orange);">
+                <span style="font-size:0.75rem; display:block; margin-bottom:4px;">Link para el Cliente:</span>
+                <code id="client-portal-url" style="color:var(--accent-orange); font-size:0.8rem;">---</code>
+            </div>
+        </div>
+
+        <div class="stats-grid" style="margin-bottom:var(--space-xl);">
+            <div class="stat-card">
+                <span class="stat-label">Total en Vales</span>
+                <span class="stat-value" id="client-stat-total">$0.00</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Consumido</span>
+                <span class="stat-value" id="client-stat-redeemed">$0.00</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Pendiente</span>
+                <span class="stat-value" id="client-stat-remaining">$0.00</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="table-header">
+                <h3>Vales del Cliente</h3>
+            </div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Valor</th>
+                            <th>Saldo</th>
+                            <th>Estado</th>
+                            <th>Vencimiento</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="client-voucher-body">
+                        <!-- Vouchers will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
     <!-- Profile Modal -->
     <div id="profile-modal" class="modal-overlay hidden">
         <div class="modal-content" style="max-width: 400px;">
