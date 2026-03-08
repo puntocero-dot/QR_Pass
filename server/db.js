@@ -112,7 +112,25 @@ function initDB() {
 }
 
 function runMigrations(db) {
-    } catch (e) { /* ignore */ }
+  // Add columns if they don't exist
+  try {
+    const cols = db.prepare("PRAGMA table_info(vouchers)").all();
+    if (!cols.find(c => c.name === 'client_id')) {
+      db.exec("ALTER TABLE vouchers ADD COLUMN client_id TEXT DEFAULT ''");
+      console.log('✅ Migración: columna client_id agregada a vouchers');
+    }
+    if (!cols.find(c => c.name === 'recipient_name')) {
+      db.exec("ALTER TABLE vouchers ADD COLUMN recipient_name TEXT DEFAULT ''");
+      db.exec("ALTER TABLE vouchers ADD COLUMN recipient_contact TEXT DEFAULT ''");
+      console.log('✅ Migración: campos de destinatario agregados a vouchers');
+    }
+
+    const redemptionCols = db.prepare("PRAGMA table_info(redemption_logs)").all();
+    if (!redemptionCols.find(c => c.name === 'invoice_number')) {
+      db.exec("ALTER TABLE redemption_logs ADD COLUMN invoice_number TEXT DEFAULT ''");
+      console.log('✅ Migración: columna invoice_number agregada a redemption_logs');
+    }
+  } catch (e) { /* ignore */ }
 
   // Assign orphan vouchers to the main vendor ID to avoid 'missing' historical data
   try {
