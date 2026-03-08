@@ -9,7 +9,7 @@
     "seed": "node server/seed.js"
   },
   "keywords": [
-    "campero",
+    "restaurantes",
     "voucher",
     "pwa",
     "qr"
