@@ -113,6 +113,9 @@
         $('#btn-cancel-bulk').addEventListener('click', closeBulkModal);
         $('#bulk-file').addEventListener('change', handleBulkFile);
         $('#btn-process-bulk').addEventListener('click', processBulk);
+
+        // Voucher creation flow
+        $('#create-form').addEventListener('submit', handleCreate);
     }
 
     function openBulkModal() {

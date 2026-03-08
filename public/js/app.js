@@ -19,6 +19,7 @@
     const $$ = (sel) => document.querySelectorAll(sel);
 
     const views = {
+        landing: $('#view-landing'),
         login: $('#view-login'),
         scanner: $('#view-scanner'),
         voucher: $('#view-voucher'),
@@ -38,7 +39,7 @@
             updateRestaurantName();
             initScanner();
         } else {
-            showView('login');
+            showView('landing');
         }
     }
 
@@ -77,6 +78,9 @@
 
     // ── Event Binding ────────────────────────────
     function bindEvents() {
+        // Landing
+        $('#btn-start-login').addEventListener('click', () => showView('login'));
+
         // Login form
         $('#login-form').addEventListener('submit', handleLogin);
 

@@ -17,7 +17,108 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        /* ── Landing Page Styles ─────────────────── */
+        .landing-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-xl);
+            background: radial-gradient(circle at top right, #C62828, #B71C1C, #1a1a1a);
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        .landing-container::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            opacity: 0.5;
+        }
+
+        .landing-hero {
+            position: relative;
+            z-index: 2;
+            max-width: 600px;
+            animation: cardSlideUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .landing-logo {
+            font-size: 5rem;
+            margin-bottom: var(--space-md);
+            filter: drop-shadow(0 0 20px rgba(255,255,255,0.2));
+            display: block;
+        }
+
+        .landing-title {
+            font-size: clamp(2.5rem, 8vw, 4rem);
+            font-weight: 900;
+            color: white;
+            line-height: 1.1;
+            margin-bottom: var(--space-sm);
+            letter-spacing: -0.04em;
+            text-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .landing-subtitle {
+            font-size: 1.25rem;
+            color: rgba(255,255,255,0.8);
+            margin-bottom: var(--space-xl);
+            font-weight: 500;
+        }
+
+        .landing-actions {
+            display: flex;
+            gap: var(--space-md);
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 16px 32px;
+            border-radius: var(--radius-full);
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+
+        .btn-glass:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-4px);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .btn-glass.primary {
+            background: white;
+            color: var(--red-700);
+        }
+
+        .btn-glass.primary:hover {
+            background: #fff;
+            box-shadow: 0 12px 40px rgba(255,255,255,0.3);
+        }
+
+        .landing-footer {
+            position: absolute;
+            bottom: var(--space-xl);
+            color: rgba(255,255,255,0.4);
+            font-size: 0.85rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+    </style>
 </head>
 
 <body>
@@ -50,8 +151,24 @@
       </div>
     </header>
 
+    <!-- ─── Landing View ─── -->
+    <section id="view-landing" class="view active">
+      <div class="landing-container">
+        <div class="landing-hero">
+          <span class="landing-logo">🐔</span>
+          <h1 class="landing-title">Pollo<br>Campero</h1>
+          <p class="landing-subtitle">Portal Digital para el Canje y Gestión de Vales Masivos El Salvador.</p>
+          <div class="landing-actions">
+            <button id="btn-start-login" class="btn-glass primary">Entrar al Sistema</button>
+            <button class="btn-glass" onclick="window.open('https://www.campero.com', '_blank')">Saber más</button>
+          </div>
+        </div>
+        <div class="landing-footer">© 2026 Pollo Campero Internacional — SV</div>
+      </div>
+    </section>
+
     <!-- ─── Login View ─── -->
-    <section id="view-login" class="view active">
+    <section id="view-login" class="view">
       <div class="login-container">
         <div class="login-hero">
           <div class="hero-glow"></div>
