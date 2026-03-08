@@ -115,6 +115,20 @@ function runMigrations(db) {
       db.exec("ALTER TABLE clients ADD COLUMN access_token TEXT UNIQUE");
       console.log('✅ Migración: columna access_token agregada a clients');
     }
+
+    // Generate tokens for existing clients that don't have one
+    const crypto = require('crypto');
+    const clientsWithoutToken = db.prepare("SELECT id FROM clients WHERE access_token IS NULL").all();
+    if (clientsWithoutToken.length > 0) {
+      const updateStmt = db.prepare("UPDATE clients SET access_token = ? WHERE id = ?");
+      const migration = db.transaction((list) => {
+        for (const c of list) {
+          updateStmt.run(crypto.randomBytes(16).toString('hex'), c.id);
+        }
+      });
+      migration(clientsWithoutToken);
+      console.log(`✅ Migración: ${clientsWithoutToken.length} tokens generados para clientes existentes`);
+    }
   } catch (e) { /* ignore */ }
 
   // Remove FK constraint from redemption_logs by recreating without it
