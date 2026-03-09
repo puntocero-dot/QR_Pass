@@ -1342,6 +1342,7 @@ textarea {
 .text-xs { font-size: 0.75rem; }
 .text-xs { font-size: 0.75rem; }
 .text-gray-400 { color: #9ca3af; }
+.text-cashier { color: var(--red-400); font-weight: 700; }
 .rounded { border-radius: 8px; }
 .border { border: 1px solid var(--border-medium); }
 .inline-block { display: inline-block; }

@@ -218,6 +218,22 @@
     function startScanner() {
         if (state.scanner) return;
         
+        const readerEl = $("#qr-reader");
+        if (!readerEl) return;
+        readerEl.innerHTML = ''; // Clear any previous error messages
+
+        // Check for secure context (Required for camera in most browsers)
+        if (!window.isSecureContext && location.hostname !== 'localhost') {
+            readerEl.innerHTML = `
+                <div class="p-20 text-center">
+                    <p class="mb-10 text-cashier">⚠️ <strong>Error de Seguridad</strong></p>
+                    <p class="text-xs mb-10">La cámara requiere una conexión segura (HTTPS).</p>
+                    <p class="text-xs">Por favor, asegúrese de que la URL empiece con <strong>https://</strong></p>
+                </div>
+            `;
+            return;
+        }
+
         const width = $('#scanner-box').clientWidth;
         const qrboxSize = Math.floor(width * 0.7);
 
@@ -235,12 +251,26 @@
             }
         ).catch(err => {
             console.error(err);
-            state.scanner = null; // Reset state if start fails
-            if (err.name === 'NotAllowedError') {
-                alert('Permiso de cámara denegado. Por favor, habilite el acceso a la cámara en los ajustes de su navegador.');
-            } else {
-                alert('Error al iniciar la cámara: ' + err);
+            state.scanner = null;
+            
+            let msg = 'Error al iniciar la cámara';
+            let subMsg = err;
+
+            if (err.name === 'NotAllowedError' || err.toString().includes('Permission denied')) {
+                msg = 'Permiso Denegado';
+                subMsg = 'El navegador bloqueó el acceso a la cámara. Por favor, habilite los permisos en los ajustes del sitio.';
+            } else if (err.name === 'NotFoundError') {
+                msg = 'Cámara No Detectada';
+                subMsg = 'No se encontró ninguna cámara disponible en este dispositivo.';
             }
+
+            readerEl.innerHTML = `
+                <div class="p-20 text-center">
+                    <p class="mb-10 text-cashier">⚠️ <strong>${msg}</strong></p>
+                    <p class="text-xs mb-16">${subMsg}</p>
+                    <button class="btn btn-secondary btn-sm" onclick="location.reload()">Reintentar</button>
+                </div>
+            `;
         });
     }
 

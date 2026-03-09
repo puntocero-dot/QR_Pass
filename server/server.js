@@ -6,10 +6,24 @@ const { initDB, seedDemoData } = require('./db');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+let isReady = false;
+
 // Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Readiness check middleware for API
+app.use('/api', (req, res, next) => {
+    if (!isReady && req.path !== '/auth/login') {
+        return res.status(503).json({
+            success: false,
+            error: 'El servidor se está iniciando, por favor espere unos segundos...',
+            code: 'SERVER_INITIALIZING'
+        });
+    }
+    next();
+});
 
 // Serve static frontend files
 app.use(express.static(path.join(__dirname, '..', 'public')));
@@ -51,6 +65,7 @@ async function startServer() {
         console.log('🚀 Starting database initialization...');
         await initDB();
         await seedDemoData();
+        isReady = true;
         console.log('✅ Database ready');
       } catch (err) {
         console.error('❌ Background initialization failed:', err);
