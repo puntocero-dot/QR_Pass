@@ -72,11 +72,11 @@
 
         $('#btn-redeem').addEventListener('click', () => {
             const amount = parseFloat($('#redeem-amount').value);
-            if (!amount || amount <= 0 || amount > state.currentVoucher.current_value) {
+            if (!amount || amount <= 0 || amount > Number(state.currentVoucher.current_value)) {
                 alert('Monto inválido');
                 return;
             }
-            $('#confirm-body').innerHTML = `Vas a canjear <strong>$${amount.toFixed(2)}</strong> del vale de <strong>${state.currentVoucher.issuing_company_name}</strong>.`;
+            $('#confirm-body').innerHTML = `Vas a canjear <strong>$${Number(amount).toFixed(2)}</strong> del vale de <strong>${state.currentVoucher.issuing_company_name}</strong>.`;
             $('#confirm-modal').classList.remove('hidden');
         });
 
@@ -138,9 +138,9 @@
     function showVoucher() {
         const v = state.currentVoucher;
         $('#voucher-company').textContent = v.issuing_company_name;
-        $('#voucher-balance').textContent = `$${v.current_value.toFixed(2)}`;
+        $('#voucher-balance').textContent = `$${Number(v.current_value).toFixed(2)}`;
         $('#voucher-expiry').textContent = new Date(v.expiry_date).toLocaleDateString();
-        $('#redeem-amount').value = v.current_value.toFixed(2);
+        $('#redeem-amount').value = Number(v.current_value).toFixed(2);
         switchView('voucher');
     }
 
@@ -164,7 +164,7 @@
             }).then(r => r.json());
 
             if (res.success) {
-                $('#result-amount').textContent = `$${amount.toFixed(2)}`;
+                $('#result-amount').textContent = `$${Number(amount).toFixed(2)}`;
                 $('#result-invoice').textContent = invoice || 'N/A';
                 $('#confirm-modal').classList.add('hidden');
                 switchView('result');
@@ -192,10 +192,10 @@
 
     function renderCuadre(list) {
         const historyList = $('#cuadre-history');
-        const total = list.reduce((a, r) => a + r.amount_redeemed, 0);
+        const total = list.reduce((a, r) => a + Number(r.amount_redeemed), 0);
         
         $('#cuadre-count').textContent = list.length;
-        $('#cuadre-total').textContent = `$${total.toFixed(2)}`;
+        $('#cuadre-total').textContent = `$${Number(total).toFixed(2)}`;
 
         if (list.length === 0) {
             historyList.innerHTML = '<p class="text-secondary text-center py-20">No hay canjes hoy.</p>';
@@ -205,7 +205,7 @@
         historyList.innerHTML = list.map(r => `
             <div class="card p-10 mb-10 shadow-sm border-radius-sm">
                 <div class="row align-between">
-                    <strong>$${r.amount_redeemed.toFixed(2)}</strong>
+                    <strong>$${Number(r.amount_redeemed).toFixed(2)}</strong>
                     <small>${new Date(r.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small>
                 </div>
                 <div class="text-xs text-secondary mt-5">

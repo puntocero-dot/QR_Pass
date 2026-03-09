@@ -264,8 +264,8 @@
     function renderStats(stats) {
         $('#stat-total').textContent = stats.total_vouchers;
         $('#stat-vouchers').textContent = stats.total_vouchers;
-        $('#stat-total-value').textContent = `$${stats.total_initial_value.toFixed(2)}`;
-        $('#stat-redeemed').textContent = `$${stats.total_redeemed_value.toFixed(2)}`;
+        $('#stat-total-value').textContent = `$${Number(stats.total_initial_value).toFixed(2)}`;
+        $('#stat-redeemed').textContent = `$${Number(stats.total_redeemed_value).toFixed(2)}`;
 
         // Update Client Filter dropdown
         const filterSelect = $('#filter-client');
@@ -300,12 +300,12 @@
 
         filtered.forEach((v, i) => {
             const isExpired = v.is_expired;
-            const isFullyUsed = v.current_value <= 0;
+            const isFullyUsed = Number(v.current_value) <= 0;
             let statusText, statusClass;
 
             if (isExpired) { statusText = 'Vencido'; statusClass = 'status-expired'; }
             else if (isFullyUsed) { statusText = 'Agotado'; statusClass = 'status-used'; }
-            else if (v.current_value < v.initial_value) { statusText = `Parcial`; statusClass = 'status-used'; }
+            else if (Number(v.current_value) < Number(v.initial_value)) { statusText = `Parcial`; statusClass = 'status-used'; }
             else { statusText = 'Activo'; statusClass = 'status-active'; }
 
             const clientName = v.client_name || '—';
@@ -314,8 +314,8 @@
             tr.innerHTML = `
         <td>${i + 1}</td>
         <td>${clientName}</td>
-        <td>$${v.initial_value.toFixed(2)}</td>
-        <td><strong>$${v.current_value.toFixed(2)}</strong></td>
+        <td>$${Number(v.initial_value).toFixed(2)}</td>
+        <td><strong>$${Number(v.current_value).toFixed(2)}</strong></td>
         <td class="${statusClass}">${statusText}</td>
         <td>${new Date(v.expiry_date).toLocaleDateString('es-SV')}</td>
         <td>${v.use_type === 'Multiple' ? 'Múlt.' : 'Único'}</td>
@@ -413,7 +413,7 @@
             card.innerHTML = `
         <img src="${imgSrc}" alt="QR Vale #${v.index}" width="140" height="140">
         <div class="card-label">Vale #${v.index}</div>
-        <div class="card-value">$${v.value.toFixed(2)}</div>
+        <div class="card-value">$${Number(v.value).toFixed(2)}</div>
       `;
 
             card.addEventListener('click', () => {
@@ -430,7 +430,7 @@
     function showQRModal(qrPayload, value, expiry, useType) {
         state._currentQR = qrPayload;
 
-        $('#modal-value').textContent = `$${value.toFixed(2)}`;
+        $('#modal-value').textContent = `$${Number(value).toFixed(2)}`;
         $('#modal-expiry').textContent = new Date(expiry).toLocaleDateString('es-SV', {
             day: '2-digit', month: 'long', year: 'numeric'
         });
@@ -507,7 +507,7 @@
                 ${c.contact_person ? `<div class="client-detail">👤 ${c.contact_person}</div>` : ''}
                 <div class="client-stats">
                     <span>Vales: <strong>${c.voucher_count || 0}</strong></span>
-                    <span>Consumido: <strong>$${(c.redeemed_value || 0).toFixed(2)}</strong></span>
+                    <span>Consumido: <strong>$${Number(c.redeemed_value || 0).toFixed(2)}</strong></span>
                 </div>
                 <div class="client-actions" style="display:flex; gap: var(--space-sm); margin-top: var(--space-md);">
                     <button class="btn btn-secondary btn-sm btn-view-client" style="flex:1" data-id="${c.id}" data-name="${c.name}" data-token="${c.access_token}">Ver Detalle</button>
@@ -558,9 +558,9 @@
                     remaining: filtered.reduce((sum, v) => sum + v.current_value, 0)
                 };
                 
-                $('#client-stat-total').textContent = `$${stats.total.toFixed(2)}`;
-                $('#client-stat-redeemed').textContent = `$${stats.redeemed.toFixed(2)}`;
-                $('#client-stat-remaining').textContent = `$${stats.remaining.toFixed(2)}`;
+                $('#client-stat-total').textContent = `$${Number(stats.total).toFixed(2)}`;
+                $('#client-stat-redeemed').textContent = `$${Number(stats.redeemed).toFixed(2)}`;
+                $('#client-stat-remaining').textContent = `$${Number(stats.remaining).toFixed(2)}`;
             }
         } catch (err) {
             showToast('Error cargando vales del cliente', 'error');
@@ -589,8 +589,8 @@
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${i + 1}</td>
-                <td>$${v.initial_value.toFixed(2)}</td>
-                <td><strong>$${v.current_value.toFixed(2)}</strong></td>
+                <td>$${Number(v.initial_value).toFixed(2)}</td>
+                <td><strong>$${Number(v.current_value).toFixed(2)}</strong></td>
                 <td class="${statusClass}">${statusText}</td>
                 <td>${new Date(v.expiry_date).toLocaleDateString('es-SV')}</td>
                 <td><button class="btn btn-secondary btn-sm" data-qr="${encodeURIComponent(v.qr_payload)}" data-value="${v.initial_value}" data-expiry="${v.expiry_date}" data-type="${v.use_type}">Ver QR</button></td>

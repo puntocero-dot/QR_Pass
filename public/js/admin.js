@@ -98,7 +98,10 @@
             
             if (res.success) {
                 $('#stat-active-companies').textContent = res.stats.activeClients || res.stats.total_clients || '0';
-                $('#stat-total-vouchers').textContent = res.stats.totalVouchers || res.stats.total_vouchers || '0';
+                $('#stat-total-vouchers').textContent = res.stats.total_vouchers;
+                $('#stat-active-vouchers').textContent = res.stats.active_vouchers;
+                $('#stat-total-value').textContent = `$${Number(res.stats.total_value).toFixed(2)}`;
+                $('#stat-redeemed-value').textContent = `$${Number(res.stats.redeemed_value).toFixed(2)}`;
                 const redeemedEl = $('#stat-total-redeemed');
                 if (redeemedEl) redeemedEl.textContent = res.stats.totalRedeemed || res.stats.total_redemptions || '0';
             }
@@ -157,9 +160,9 @@
             <tr>
                 <td>${i + 1}</td>
                 <td>${v.client_name || '—'}</td>
-                <td>$${v.initial_value.toFixed(2)}</td>
-                <td><strong>$${v.current_value.toFixed(2)}</strong></td>
-                <td><span class="badge ${v.current_value <= 0 ? 'badge-cashier' : 'badge-admin'}">${v.current_value <= 0 ? 'AGOTADO' : 'ACTIVO'}</span></td>
+                <td>$${Number(v.initial_value).toFixed(2)}</td>
+                <td><strong>$${Number(v.current_value).toFixed(2)}</strong></td>
+                <td><span class="badge ${Number(v.current_value) <= 0 ? 'badge-cashier' : 'badge-admin'}">${Number(v.current_value) <= 0 ? 'AGOTADO' : 'ACTIVO'}</span></td>
                 <td>${new Date(v.expiry_date).toLocaleDateString()}</td>
                 <td>
                     <button class="btn btn-ghost btn-xs" onclick="showQR('${v.id}')">QR</button>

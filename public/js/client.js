@@ -96,10 +96,10 @@
     }
 
     function renderStats() {
-        const active = state.vouchers.filter(v => v.current_value > 0).length;
-        const total = state.vouchers.reduce((a, v) => a + v.current_value, 0);
+        const active = state.vouchers.filter(v => Number(v.current_value) > 0).length;
+        const total = state.vouchers.reduce((a, v) => a + Number(v.current_value), 0);
         $('#stat-count').textContent = active;
-        $('#stat-value').textContent = `$${total.toFixed(2)}`;
+        $('#stat-value').textContent = `$${Number(total).toFixed(2)}`;
     }
 
     function renderVouchers() {
@@ -120,15 +120,15 @@
         filtered.forEach(v => {
             const card = document.createElement('div');
             card.className = 'card voucher-item';
-            const isUsed = v.current_value <= 0;
+            const isUsed = Number(v.current_value) <= 0;
             
             card.innerHTML = `
                 <div class="voucher-info">
-                    <strong>$${v.initial_value.toFixed(2)}</strong>
+                    <strong>$${Number(v.initial_value).toFixed(2)}</strong>
                     <span class="badge ${v.recipient_contact ? 'badge-info' : 'badge-success'}">
                         ${v.recipient_contact ? 'Asignado' : 'Disponible'}
                     </span>
-                    <p>Saldo: $${v.current_value.toFixed(2)}</p>
+                    <p>Saldo: $${Number(v.current_value).toFixed(2)}</p>
                     ${v.recipient_contact ? `<p class="recipient-info">Enviado a: ${v.recipient_contact}</p>` : ''}
                 </div>
                 <div class="voucher-actions">
