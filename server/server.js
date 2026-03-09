@@ -1,7 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const express = require('express');
-const cors = require('cors');
 const path = require('path');
 const { initDB, seedDemoData } = require('./db');
 
