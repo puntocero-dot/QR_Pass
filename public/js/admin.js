@@ -194,7 +194,7 @@
                 <p class="text-xs text-secondary mb-12">NIT: ${c.tax_id || '—'}</p>
                 <div class="flex justify-between text-xs mb-16">
                     <span>Vales: <strong>${c.voucher_count || 0}</strong></span>
-                    <span>Consumido: <strong>$${(c.redeemed_value || 0).toFixed(2)}</strong></span>
+                    <span>Consumido: <strong>$${Number(c.redeemed_value || 0).toFixed(2)}</strong></span>
                 </div>
                 <div class="flex gap-8">
                     <button class="btn btn-secondary btn-sm flex-1" onclick="editClient('${c.id}')">Editar</button>

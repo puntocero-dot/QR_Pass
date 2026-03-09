@@ -38,26 +38,30 @@ app.use((err, req, res, next) => {
 
 // Main app startup
 async function startServer() {
-  try {
-    console.log('🚀 Starting server sequence...');
-    // Initialize Database
-    await initDB();
+  // Listen immediately to satisfy Railway's health check
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🐔 ═══════════════════════════════════════════════════`);
+    console.log(`   Servidor activo en: http://0.0.0.0:${PORT}`);
+    console.log(`   RESTAURANTES — Sistema de Canje de Vales`);
+    console.log(`   ═══════════════════════════════════════════════════`);
     
-    // Seed demo data
-    await seedDemoData();
-
-    app.listen(PORT, '0.0.0.0', () => {
-      console.log(`🐔 ═══════════════════════════════════════════════════`);
-      console.log(`   Servidor activo en: http://0.0.0.0:${PORT}`);
-      console.log(`   RESTAURANTES — Sistema de Canje de Vales`);
-      console.log(`   ═══════════════════════════════════════════════════`);
-    });
-  } catch (err) {
-    console.error('Failed to start server:', err);
-    process.exit(1);
-  }
+    // Background Initialization
+    (async () => {
+      try {
+        console.log('🚀 Starting database initialization...');
+        await initDB();
+        await seedDemoData();
+        console.log('✅ Database ready');
+      } catch (err) {
+        console.error('❌ Background initialization failed:', err);
+      }
+    })();
+  });
 }
 
-startServer();
+// Only start if run directly
+if (require.main === module) {
+  startServer();
+}
 
 module.exports = app;
