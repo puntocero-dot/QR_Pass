@@ -23,23 +23,26 @@
     function bindEvents() {
         $('#portal-login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const identifier = $('#portal-identifier').value;
+            const username = $('#portal-username').value;
             const password = $('#portal-password').value;
             const errorEl = $('#login-error');
 
             try {
-                const res = await fetch('/api/client-portal/login', {
+                const res = await fetch('/api/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ identifier, password })
+                    body: JSON.stringify({ username, password })
                 }).then(r => r.json());
 
-                if (res.success) {
+                if (res.success && res.user.role === 'client') {
                     state.token = res.token;
-                    state.client = res.client;
+                    state.client = res.user;
                     localStorage.setItem('company_portal_token', res.token);
-                    localStorage.setItem('company_portal_client', JSON.stringify(res.client));
+                    localStorage.setItem('company_portal_client', JSON.stringify(res.user));
                     showPortal();
+                } else if (res.success) {
+                    errorEl.textContent = 'Este usuario no tiene acceso al portal de clientes';
+                    errorEl.classList.remove('hidden');
                 } else {
                     errorEl.textContent = res.error || 'Credenciales incorrectas';
                     errorEl.classList.remove('hidden');
@@ -65,16 +68,23 @@
             });
         });
 
-        $('#bulk-csv').addEventListener('change', handleFileSelect);
-        $('#btn-process-bulk').addEventListener('click', processBulkList);
-        $('#btn-confirm-bulk').addEventListener('click', confirmBulkAssignment);
-        $('#send-form').addEventListener('submit', handleSingleAssign);
+        const bulkBtn = $('#btn-process-bulk');
+        if (bulkBtn) bulkBtn.addEventListener('click', processBulkList);
+        
+        const bulkConfirmBtn = $('#btn-confirm-bulk');
+        if (bulkConfirmBtn) bulkConfirmBtn.addEventListener('click', confirmBulkAssignment);
+        
+        const sendForm = $('#send-form');
+        if (sendForm) sendForm.addEventListener('submit', handleSingleAssign);
+
+        const bulkCsv = $('#bulk-csv');
+        if (bulkCsv) bulkCsv.addEventListener('change', handleFileSelect);
     }
 
     async function showPortal() {
         $('#login-section').classList.add('hidden');
         $('#main-view').classList.remove('hidden');
-        $('#client-name').textContent = state.client.name;
+        $('#client-name').textContent = state.client.full_name || state.client.company_name;
         loadVouchers();
     }
 
@@ -111,7 +121,7 @@
             filtered = state.vouchers.filter(v => v.recipient_contact);
         }
 
-        if (filtered.length === 0) {
+        if (state.vouchers.length === 0) {
             $('#empty-state').classList.remove('hidden');
             return;
         }
@@ -119,28 +129,83 @@
 
         filtered.forEach(v => {
             const card = document.createElement('div');
-            card.className = 'card voucher-item';
+            card.className = 'voucher-card fade-in';
             const isUsed = Number(v.current_value) <= 0;
+            const isExpired = v.is_expired;
             
             card.innerHTML = `
-                <div class="voucher-info">
-                    <strong>$${Number(v.initial_value).toFixed(2)}</strong>
-                    <span class="badge ${v.recipient_contact ? 'badge-info' : 'badge-success'}">
-                        ${v.recipient_contact ? 'Asignado' : 'Disponible'}
+                <div class="v-header">
+                    <span class="v-value">$${Number(v.initial_value).toFixed(2)}</span>
+                    <span class="v-status ${isUsed ? 'status-used' : (isExpired ? 'status-expired' : 'status-active')}">
+                        ${isUsed ? 'Consumido' : (isExpired ? 'Expirado' : 'Activo')}
                     </span>
-                    <p>Saldo: $${Number(v.current_value).toFixed(2)}</p>
-                    ${v.recipient_contact ? `<p class="recipient-info">Enviado a: ${v.recipient_contact}</p>` : ''}
                 </div>
-                <div class="voucher-actions">
-                    <button class="btn btn-ghost btn-sm" onclick="openQR('${v.id}')">QR</button>
-                    <button class="btn btn-primary btn-sm" onclick="openAssign('${v.id}')" ${isUsed ? 'disabled' : ''}>
-                        ${v.recipient_contact ? 'Re-enviar' : 'Asignar'}
+                <div class="v-details">
+                    <p>Saldo actual: <strong>$${Number(v.current_value).toFixed(2)}</strong></p>
+                    <p>Expira: ${new Date(v.expiry_date).toLocaleDateString()}</p>
+                </div>
+                ${v.recipient_contact ? `
+                    <div class="v-recipient">
+                        <strong>Para: ${v.recipient_name || 'Empleado'}</strong>
+                        <span>${v.recipient_contact}</span>
+                    </div>
+                ` : ''}
+                <div class="v-actions">
+                    <button class="btn btn-primary" onclick="openQR('${v.id}')">VER QR</button>
+                    <button class="btn btn-ghost" onclick="openAssign('${v.id}')">
+                        ${v.recipient_contact ? 'EDITAR' : 'ASIGNAR'}
+                    </button>
+                    <button class="btn btn-ghost" onclick="shareVoucher('${v.id}', 'wa')" ${isUsed || !v.recipient_contact ? 'disabled' : ''}>
+                        WHATSAPP
+                    </button>
+                    <button class="btn btn-ghost" onclick="shareVoucher('${v.id}', 'mail')" ${isUsed || !v.recipient_contact ? 'disabled' : ''}>
+                        EMAIL
                     </button>
                 </div>
             `;
             wrap.appendChild(card);
         });
     }
+
+    window.openQR = (id) => {
+        const v = state.vouchers.find(v => v.id === id);
+        if (!v) return;
+
+        const qr = qrcode(0, 'M');
+        qr.addData(v.qr_payload);
+        qr.make();
+        
+        $('#qr-container').innerHTML = qr.createImgTag(5);
+        $('#qr-value').textContent = `$${Number(v.current_value).toFixed(2)}`;
+        $('#qr-modal').classList.add('active');
+    };
+
+    window.closeModal = (id) => {
+        $(`#${id}`).classList.remove('active');
+    };
+
+    window.shareVoucher = (id, type) => {
+        const v = state.vouchers.find(v => v.id === id);
+        if (!v) return;
+
+        const message = `Hola ${v.recipient_name || ''}, aquí tienes tu vale de consumo por $${Number(v.initial_value).toFixed(2)}. Saldo: $${Number(v.current_value).toFixed(2)}. Presenta este código QR: ${window.location.origin}/client.html (Ingresa con tu empresa)`;
+        
+        if (type === 'wa') {
+            const url = `https://wa.me/${v.recipient_contact.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
+            window.open(url, '_blank');
+        } else {
+            const url = `mailto:${v.recipient_contact}?subject=Tu Vale QR&body=${encodeURIComponent(message)}`;
+            window.location.href = url;
+        }
+    };
+
+    window.openAssign = (id) => {
+        const v = state.vouchers.find(v => v.id === id);
+        $('#send-voucher-id').value = id;
+        $('#recipient-name').value = v.recipient_name || '';
+        $('#recipient-contact').value = v.recipient_contact || '';
+        $('#send-modal').classList.add('active');
+    };
 
     function handleFileSelect(e) {
         const file = e.target.files[0];
@@ -187,6 +252,7 @@
         e.preventDefault();
         const id = $('#send-voucher-id').value;
         const contact = $('#recipient-contact').value;
+        const name = $('#recipient-name').value;
 
         const res = await fetch('/api/client-portal/assign', {
             method: 'POST',
@@ -194,7 +260,7 @@
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${state.token}`
             },
-            body: JSON.stringify({ voucher_id: id, recipient_contact: contact })
+            body: JSON.stringify({ voucher_id: id, recipient_contact: contact, recipient_name: name })
         }).then(r => r.json());
 
         if (res.success) {
@@ -202,16 +268,6 @@
             loadVouchers();
         }
     }
-
-    window.openAssign = (id) => {
-        $('#send-voucher-id').value = id;
-        $('#send-modal').classList.add('active');
-    };
-
-    window.openQR = (id) => {
-        const v = state.vouchers.find(v => v.id === id);
-        // Show QR logic...
-    };
 
     init();
 })();

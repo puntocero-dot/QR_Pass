@@ -79,6 +79,26 @@
         $('#client-form').addEventListener('submit', handleClientSubmit);
         $('#create-voucher-form').addEventListener('submit', handleVoucherCreate);
         $('#bulk-form').addEventListener('submit', handleBulkSubmit);
+
+        $('#user-role').addEventListener('change', (e) => {
+            const role = e.target.value;
+            const label = $('#label-related-id');
+            const input = $('#user-related-id');
+            const select = $('#user-client-id');
+
+            if (role === 'client') {
+                label.textContent = 'Empresa Vinculada';
+                input.classList.add('hidden');
+                select.classList.remove('hidden');
+                
+                select.innerHTML = '<option value="">— Seleccionar —</option>' + 
+                    state.clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            } else {
+                label.textContent = 'ID Relacionado (Restaurante/Vendedor)';
+                input.classList.remove('hidden');
+                select.classList.add('hidden');
+            }
+        });
     }
 
     function switchView(viewId) {
@@ -149,7 +169,11 @@
                 <td><strong>${u.username}</strong></td>
                 <td>${u.full_name}</td>
                 <td><span class="badge badge-${u.role}">${u.role}</span></td>
-                <td><small>${u.related_id || '-'}</small></td>
+                <td><small>${
+                    u.role === 'client' 
+                    ? (state.clients.find(c => c.id === u.related_id)?.name || u.related_id || '-')
+                    : (u.related_id || '-')
+                }</small></td>
                 <td>
                     <button class="btn btn-ghost btn-xs" onclick="editUser('${u.id}')">✏️</button>
                     <button class="btn btn-ghost btn-xs" onclick="deleteUser('${u.id}')">🗑️</button>
@@ -371,7 +395,7 @@
             username: $('#user-username').value,
             password: $('#user-password').value,
             role: $('#user-role').value,
-            related_id: $('#user-related-id').value
+            related_id: $('#user-role').value === 'client' ? $('#user-client-id').value : $('#user-related-id').value
         };
 
         try {
@@ -401,8 +425,15 @@
         $('#user-full-name').value = u.full_name;
         $('#user-username').value = u.username;
         $('#user-role').value = u.role;
-        $('#user-related-id').value = u.related_id;
-        $('#user-password').value = '********'; // Placeholder to indicate no change unless edited
+        $('#user-role').dispatchEvent(new Event('change')); // Trigger UI switch
+        
+        if (u.role === 'client') {
+            $('#user-client-id').value = u.related_id;
+        } else {
+            $('#user-related-id').value = u.related_id;
+        }
+        
+        $('#user-password').value = '********'; 
         $('#modal-user').classList.add('active');
     };
 

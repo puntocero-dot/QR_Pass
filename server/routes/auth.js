@@ -45,6 +45,9 @@ router.post('/login', async (req, res) => {
         } else if (user.role === 'admin') {
             payload.company_id = 'ADMIN';
             payload.company_name = 'Restaurantes Admin';
+        } else if (user.role === 'client') {
+            payload.company_id = user.related_id;
+            payload.company_name = user.full_name;
         } else {
             payload.cashier_id = user.id;
             payload.restaurant_id = user.related_id;

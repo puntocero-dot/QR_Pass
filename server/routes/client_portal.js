@@ -58,13 +58,17 @@ router.post('/login', async (req, res) => {
  */
 router.get('/portal', authenticateToken, authorizeRole('client'), async (req, res) => {
     const db = getDB();
-    const clientId = req.user.id;
+    const companyId = req.user.company_id;
+
+    if (!companyId) {
+        return res.status(403).json({ success: false, error: 'Usuario no vinculado a una empresa' });
+    }
 
     try {
-        const { rows: clientRows } = await db.query('SELECT id, name, trade_name FROM clients WHERE id = $1', [clientId]);
+        const { rows: clientRows } = await db.query('SELECT id, name, trade_name FROM clients WHERE id = $1', [companyId]);
         const client = clientRows[0];
         
-        const { rows: vouchers } = await db.query('SELECT * FROM vouchers WHERE client_id = $1', [clientId]);
+        const { rows: vouchers } = await db.query('SELECT * FROM vouchers WHERE client_id = $1', [companyId]);
 
         const processedVouchers = vouchers.map(v => ({
             ...v,
@@ -89,7 +93,8 @@ router.get('/portal', authenticateToken, authorizeRole('client'), async (req, re
  */
 router.post('/assign-bulk', authenticateToken, authorizeRole('client'), async (req, res) => {
     const db = getDB();
-    const { assignments } = req.body; // Array of { voucher_id, contact }
+    const { assignments } = req.body; 
+    const companyId = req.user.company_id;
 
     if (!assignments || !Array.isArray(assignments)) {
         return res.status(400).json({ success: false, error: 'Datos de asignación inválidos' });
@@ -104,7 +109,7 @@ router.post('/assign-bulk', authenticateToken, authorizeRole('client'), async (r
                 UPDATE vouchers 
                 SET recipient_contact = $1, recipient_name = $2
                 WHERE id = $3 AND client_id = $4
-            `, [item.contact, item.contact, item.voucher_id, req.user.id]);
+            `, [item.contact, item.contact, item.voucher_id, companyId]);
         }
 
         await client.query('COMMIT');
@@ -123,13 +128,14 @@ router.post('/assign-bulk', authenticateToken, authorizeRole('client'), async (r
 router.post('/assign', authenticateToken, authorizeRole('client'), async (req, res) => {
     const { voucher_id, recipient_contact, recipient_name } = req.body;
     const db = getDB();
+    const companyId = req.user.company_id;
 
     try {
         const result = await db.query(`
             UPDATE vouchers 
             SET recipient_name = $1, recipient_contact = $2 
             WHERE id = $3 AND client_id = $4
-        `, [recipient_name || recipient_contact, recipient_contact, voucher_id, req.user.id]);
+        `, [recipient_name || recipient_contact, recipient_contact, voucher_id, companyId]);
 
         if (result.rowCount > 0) {
             res.json({ success: true });
