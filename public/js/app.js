@@ -19,8 +19,6 @@
         const isLanding = path === '/' || path === '/index.html';
         const isApp = path.includes('app.html');
 
-        console.log('[App] Init', { path, isLanding, isApp, hasToken: !!state.token });
-
         if (state.token && state.user) {
             if (state.user.role === 'admin' || state.user.role === 'vendor') {
                 location.href = '/admin.html';
