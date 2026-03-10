@@ -1,6 +1,11 @@
 (function () {
+    // Version: 1.0.2 - Fixed multi-page TypeError
     const $ = (sel) => document.querySelector(sel);
     const $$ = (sel) => document.querySelectorAll(sel);
+    const safeAddListener = (sel, event, cb) => {
+        const el = $(sel);
+        if (el) el.addEventListener(event, cb);
+    };
 
     const state = {
         token: localStorage.getItem('restaurantes_token'),
@@ -14,6 +19,8 @@
         const isLanding = path === '/' || path === '/index.html';
         const isApp = path.includes('app.html');
 
+        console.log('[App] Init', { path, isLanding, isApp, hasToken: !!state.token });
+
         if (state.token && state.user) {
             if (state.user.role === 'admin' || state.user.role === 'vendor') {
                 location.href = '/admin.html';
@@ -25,52 +32,54 @@
             }
             showApp();
         } else {
+            // Only force login view if we are on the app page
             if (isApp) {
-                location.href = '/index.html';
-                return;
+                switchView('login');
             }
-            switchView('login');
         }
         bindEvents();
     }
 
     function bindEvents() {
-        $('#btn-start-login').addEventListener('click', () => switchView('login'));
+        safeAddListener('#btn-start-login', 'click', () => switchView('login'));
         
-        $('#login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const username = $('#login-user').value;
-            const password = $('#login-pass').value;
-            const errorEl = $('#login-error');
-            const btn = $('#btn-login');
+        const loginForm = $('#login-form');
+        if (loginForm) {
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const username = $('#login-user').value;
+                const password = $('#login-pass').value;
+                const errorEl = $('#login-error');
+                const btn = $('#btn-login');
 
-            btn.disabled = true;
-            try {
-                const res = await fetch('/api/auth/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
-                }).then(r => r.json());
+                btn.disabled = true;
+                try {
+                    const res = await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password })
+                    }).then(r => r.json());
 
-                if (res.success) {
-                    state.token = res.token;
-                    state.user = res.user;
-                    localStorage.setItem('restaurantes_token', res.token);
-                    localStorage.setItem('restaurantes_user', JSON.stringify(res.user));
-                    
-                    if (res.user.role === 'admin' || res.user.role === 'vendor') location.href = '/admin.html';
-                    else showApp();
-                } else {
-                    errorEl.textContent = res.error;
+                    if (res.success) {
+                        state.token = res.token;
+                        state.user = res.user;
+                        localStorage.setItem('restaurantes_token', res.token);
+                        localStorage.setItem('restaurantes_user', JSON.stringify(res.user));
+                        
+                        if (res.user.role === 'admin' || res.user.role === 'vendor') location.href = '/admin.html';
+                        else showApp();
+                    } else {
+                        errorEl.textContent = res.error;
+                        errorEl.classList.remove('hidden');
+                    }
+                } catch (err) {
+                    errorEl.textContent = 'Error de conexión';
                     errorEl.classList.remove('hidden');
-                }
-            } catch (err) {
-                errorEl.textContent = 'Error de conexión';
-                errorEl.classList.remove('hidden');
-            } finally { btn.disabled = false; }
-        });
+                } finally { btn.disabled = false; }
+            });
+        }
 
-        $('#btn-logout-header').addEventListener('click', handleLogout);
+        safeAddListener('#btn-logout-header', 'click', handleLogout);
 
         $$('.nav-item').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -79,12 +88,12 @@
             });
         });
 
-        $('#btn-manual-validate').addEventListener('click', () => {
+        safeAddListener('#btn-manual-validate', 'click', () => {
             const code = $('#manual-code').value;
             if (code) validateVoucher(code);
         });
 
-        $('#btn-redeem').addEventListener('click', () => {
+        safeAddListener('#btn-redeem', 'click', () => {
             const amount = parseFloat($('#redeem-amount').value);
             if (!amount || amount <= 0 || amount > Number(state.currentVoucher.current_value)) {
                 alert('Monto inválido');
@@ -94,22 +103,29 @@
             $('#confirm-modal').classList.remove('hidden');
         });
 
-        $('#btn-confirm-cancel').addEventListener('click', () => $('#confirm-modal').classList.add('hidden'));
-        
-        $('#btn-confirm-ok').addEventListener('click', handleRedeem);
-
-        $('#btn-new-scan').addEventListener('click', () => switchView('scanner'));
-        $('#btn-cancel-voucher').addEventListener('click', () => switchView('scanner'));
+        safeAddListener('#btn-confirm-cancel', 'click', () => $('#confirm-modal').classList.add('hidden'));
+        safeAddListener('#btn-confirm-ok', 'click', handleRedeem);
+        safeAddListener('#btn-new-scan', 'click', () => switchView('scanner'));
+        safeAddListener('#btn-cancel-voucher', 'click', () => switchView('scanner'));
     }
 
     function switchView(viewId) {
+        const targetView = $(`#view-${viewId}`);
+        if (!targetView) {
+            console.log('[App] switchView aborted: target not found', viewId);
+            return;
+        }
+
         $$('.view').forEach(v => v.classList.remove('active'));
-        $(`#view-${viewId}`).classList.add('active');
+        targetView.classList.add('active');
 
         // Update nav
-        $$('.nav-item').forEach(b => b.classList.remove('active'));
-        const navBtn = $(`.nav-item[data-view="${viewId}"]`);
-        if (navBtn) navBtn.classList.add('active');
+        const navEl = $('#bottom-nav');
+        if (navEl) {
+            $$('.nav-item').forEach(b => b.classList.remove('active'));
+            const navBtn = $(`.nav-item[data-view="${viewId}"]`);
+            if (navBtn) navBtn.classList.add('active');
+        }
 
         if (viewId === 'scanner') startScanner();
         else stopScanner();
@@ -118,9 +134,14 @@
     }
 
     function showApp() {
-        $('#app-header').classList.remove('hidden');
-        $('#bottom-nav').classList.remove('hidden');
-        $('#restaurant-name').textContent = state.user.restaurant_name || 'Restaurante';
+        const header = $('#app-header');
+        const nav = $('#bottom-nav');
+        if (header) header.classList.remove('hidden');
+        if (nav) nav.classList.remove('hidden');
+        
+        const nameEl = $('#restaurant-name');
+        if (nameEl) nameEl.textContent = state.user.restaurant_name || 'Restaurante';
+        
         switchView('scanner');
     }
 
@@ -151,10 +172,16 @@
 
     function showVoucher() {
         const v = state.currentVoucher;
-        $('#voucher-company').textContent = v.issuing_company_name;
-        $('#voucher-balance').textContent = `$${Number(v.current_value).toFixed(2)}`;
-        $('#voucher-expiry').textContent = new Date(v.expiry_date).toLocaleDateString();
-        $('#redeem-amount').value = Number(v.current_value).toFixed(2);
+        const comp = $('#voucher-company');
+        const bal = $('#voucher-balance');
+        const exp = $('#voucher-expiry');
+        const amt = $('#redeem-amount');
+
+        if (comp) comp.textContent = v.issuing_company_name;
+        if (bal) bal.textContent = `$${Number(v.current_value).toFixed(2)}`;
+        if (exp) exp.textContent = new Date(v.expiry_date).toLocaleDateString();
+        if (amt) amt.value = Number(v.current_value).toFixed(2);
+        
         switchView('voucher');
     }
 
@@ -178,9 +205,14 @@
             }).then(r => r.json());
 
             if (res.success) {
-                $('#result-amount').textContent = `$${Number(amount).toFixed(2)}`;
-                $('#result-invoice').textContent = invoice || 'N/A';
-                $('#confirm-modal').classList.add('hidden');
+                const resAmt = $('#result-amount');
+                const resInv = $('#result-invoice');
+                if (resAmt) resAmt.textContent = `$${Number(amount).toFixed(2)}`;
+                if (resInv) resInv.textContent = invoice || 'N/A';
+                
+                const modal = $('#confirm-modal');
+                if (modal) modal.classList.add('hidden');
+                
                 switchView('result');
             } else {
                 alert(res.error);
@@ -191,6 +223,8 @@
 
     async function loadCuadre() {
         const historyList = $('#cuadre-history');
+        if (!historyList) return;
+        
         historyList.innerHTML = '<p class="text-center py-20">Cargando...</p>';
 
         try {
@@ -206,23 +240,27 @@
 
     function renderCuadre(list) {
         const historyList = $('#cuadre-history');
+        if (!historyList) return;
+
         const total = list.reduce((a, r) => a + Number(r.amount_redeemed), 0);
         
-        $('#cuadre-count').textContent = list.length;
-        $('#cuadre-total').textContent = `$${Number(total).toFixed(2)}`;
+        const countEl = $('#cuadre-count');
+        const totalEl = $('#cuadre-total');
+        if (countEl) countEl.textContent = list.length;
+        if (totalEl) totalEl.textContent = `$${Number(total).toFixed(2)}`;
 
         if (list.length === 0) {
-            historyList.innerHTML = '<p class="text-secondary text-center py-20">No hay canjes hoy.</p>';
+            historyList.innerHTML = '<p class="text-secondary text-center py-10">No hay canjes hoy.</p>';
             return;
         }
 
         historyList.innerHTML = list.map(r => `
-            <div class="card p-10 mb-10 shadow-sm border-radius-sm">
-                <div class="row align-between">
+            <div class="card p-10 mb-10 shadow-sm border-radius-sm" style="background:white; color:black;">
+                <div class="row align-between" style="display:flex; justify-content:space-between;">
                     <strong>$${Number(r.amount_redeemed).toFixed(2)}</strong>
                     <small>${new Date(r.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small>
                 </div>
-                <div class="text-xs text-secondary mt-5">
+                <div style="font-size:0.75rem; color:#666; margin-top:4px;">
                     ${r.issuing_company_name} ${r.invoice_number ? `• Ticket: ${r.invoice_number}` : ''}
                 </div>
             </div>
@@ -234,21 +272,14 @@
         
         const readerEl = $("#qr-reader");
         if (!readerEl) return;
-        readerEl.innerHTML = ''; // Clear any previous error messages
+        readerEl.innerHTML = '';
 
-        // Check for secure context (Required for camera in most browsers)
         if (!window.isSecureContext && location.hostname !== 'localhost') {
-            readerEl.innerHTML = `
-                <div class="p-20 text-center">
-                    <p class="mb-10 text-cashier">⚠️ <strong>Error de Seguridad</strong></p>
-                    <p class="text-xs mb-10">La cámara requiere una conexión segura (HTTPS).</p>
-                    <p class="text-xs">Por favor, asegúrese de que la URL empiece con <strong>https://</strong></p>
-                </div>
-            `;
+            readerEl.innerHTML = `<div class="p-20 text-center">⚠️ Cámara requiere HTTPS</div>`;
             return;
         }
 
-        const width = $('#scanner-box').clientWidth;
+        const width = $('#scanner-box') ? $('#scanner-box').clientWidth : 300;
         const qrboxSize = Math.floor(width * 0.7);
 
         state.scanner = new Html5Qrcode("qr-reader");
@@ -266,36 +297,16 @@
         ).catch(err => {
             console.error(err);
             state.scanner = null;
-            
-            let msg = 'Error al iniciar la cámara';
-            let subMsg = err;
-
-            if (err.name === 'NotAllowedError' || err.toString().includes('Permission denied')) {
-                msg = 'Permiso Denegado';
-                subMsg = 'El navegador bloqueó el acceso a la cámara. Por favor, habilite los permisos en los ajustes del sitio.';
-            } else if (err.name === 'NotFoundError') {
-                msg = 'Cámara No Detectada';
-                subMsg = 'No se encontró ninguna cámara disponible en este dispositivo.';
-            }
-
-            readerEl.innerHTML = `
-                <div class="p-20 text-center">
-                    <p class="mb-10 text-cashier">⚠️ <strong>${msg}</strong></p>
-                    <p class="text-xs mb-16">${subMsg}</p>
-                    <button class="btn btn-secondary btn-sm" onclick="location.reload()">Reintentar</button>
-                </div>
-            `;
+            readerEl.innerHTML = `<div class="p-20 text-center text-xs">Error cámara: ${err}</div>`;
         });
     }
 
     function stopScanner() {
         if (state.scanner) {
-            // Check if actually running before calling stop
-            if (state.scanner.getState() === 2) { // 2 = SCANNING
+            if (state.scanner.getState() === 2) { 
                 state.scanner.stop().then(() => {
                     state.scanner = null;
                 }).catch(e => {
-                    console.warn("Error stopping scanner:", e);
                     state.scanner = null;
                 });
             } else {
