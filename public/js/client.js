@@ -14,45 +14,14 @@
         if (state.token && state.client) {
             showPortal();
         } else {
-            $('#loader-view').classList.add('hidden');
-            $('#login-section').classList.remove('hidden');
-            $('#main-view').classList.add('hidden');
+            // Redirect to unified login on main page if not authenticated
+            location.href = '/index.html';
         }
         bindEvents();
     }
 
     function bindEvents() {
-        $('#portal-login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const username = $('#portal-username').value;
-            const password = $('#portal-password').value;
-            const errorEl = $('#login-error');
-
-            try {
-                const res = await fetch('/api/auth/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
-                }).then(r => r.json());
-
-                if (res.success && res.user.role === 'client') {
-                    state.token = res.token;
-                    state.client = res.user;
-                    localStorage.setItem('company_portal_token', res.token);
-                    localStorage.setItem('company_portal_client', JSON.stringify(res.user));
-                    showPortal();
-                } else if (res.success) {
-                    errorEl.textContent = 'Este usuario no tiene acceso al portal de clientes';
-                    errorEl.classList.remove('hidden');
-                } else {
-                    errorEl.textContent = res.error || 'Credenciales incorrectas';
-                    errorEl.classList.remove('hidden');
-                }
-            } catch (err) {
-                errorEl.textContent = 'Error de conexión';
-                errorEl.classList.remove('hidden');
-            }
-        });
+        // Redundant login form removed from HTML
 
         const logoutBtn = $('#btn-logout');
         if (logoutBtn) {
@@ -134,36 +103,37 @@
 
         filtered.forEach(v => {
             const card = document.createElement('div');
-            card.className = 'voucher-card fade-in';
+            card.className = 'glass-card fade-in';
+            card.style.padding = '24px';
             const isUsed = Number(v.current_value) <= 0;
             const isExpired = v.is_expired;
             
             card.innerHTML = `
-                <div class="v-header">
-                    <span class="v-value">$${Number(v.initial_value).toFixed(2)}</span>
-                    <span class="v-status ${isUsed ? 'status-used' : (isExpired ? 'status-expired' : 'status-active')}">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+                    <span style="font-size: 1.5rem; font-weight: 800; color: var(--premium-accent); font-family: var(--font-heading);">$${Number(v.initial_value).toFixed(2)}</span>
+                    <span style="font-size: 0.7rem; padding: 4px 10px; border-radius: 6px; font-weight: 700; text-transform: uppercase; background: rgba(255,255,255,0.05); color: ${isUsed ? '#888' : (isExpired ? '#f44336' : '#4caf50')}">
                         ${isUsed ? 'Consumido' : (isExpired ? 'Expirado' : 'Activo')}
                     </span>
                 </div>
-                <div class="v-details">
-                    <p>Saldo actual: <strong>$${Number(v.current_value).toFixed(2)}</strong></p>
-                    <p>Expira: ${new Date(v.expiry_date).toLocaleDateString()}</p>
+                <div style="margin-bottom: 20px;">
+                    <p style="font-size: 0.85rem; color: rgba(255,255,255,0.5);">Saldo: <strong style="color: white;">$${Number(v.current_value).toFixed(2)}</strong></p>
+                    <p style="font-size: 0.85rem; color: rgba(255,255,255,0.3);">Vence: ${new Date(v.expiry_date).toLocaleDateString()}</p>
                 </div>
                 ${v.recipient_contact ? `
-                    <div class="v-recipient">
-                        <strong>Para: ${v.recipient_name || 'Empleado'}</strong>
-                        <span>${v.recipient_contact}</span>
+                    <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 12px; border-left: 3px solid var(--premium-accent); margin-bottom: 20px;">
+                        <strong style="display: block; font-size: 0.85rem;">Para: ${v.recipient_name || 'Empleado'}</strong>
+                        <span style="font-size: 0.75rem; color: rgba(255,255,255,0.4);">${v.recipient_contact}</span>
                     </div>
                 ` : ''}
-                <div class="v-actions">
-                    <button class="btn btn-primary" onclick="openQR('${v.id}')">VER QR</button>
-                    <button class="btn btn-ghost" onclick="openAssign('${v.id}')">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <button class="premium-btn" style="padding: 10px; font-size: 0.75rem;" onclick="openQR('${v.id}')">VER QR</button>
+                    <button class="btn btn-ghost" style="font-size: 0.75rem;" onclick="openAssign('${v.id}')">
                         ${v.recipient_contact ? 'EDITAR' : 'ASIGNAR'}
                     </button>
-                    <button class="btn btn-ghost" onclick="shareVoucher('${v.id}', 'wa')" ${isUsed || !v.recipient_contact ? 'disabled' : ''}>
+                    <button class="btn btn-ghost" style="padding: 8px; font-size: 0.65rem;" onclick="shareVoucher('${v.id}', 'wa')" ${isUsed || !v.recipient_contact ? 'disabled' : ''}>
                         WHATSAPP
                     </button>
-                    <button class="btn btn-ghost" onclick="shareVoucher('${v.id}', 'mail')" ${isUsed || !v.recipient_contact ? 'disabled' : ''}>
+                    <button class="btn btn-ghost" style="padding: 8px; font-size: 0.65rem;" onclick="shareVoucher('${v.id}', 'mail')" ${isUsed || !v.recipient_contact ? 'disabled' : ''}>
                         EMAIL
                     </button>
                 </div>
@@ -183,11 +153,11 @@
         
         $('#qr-container').innerHTML = qr.createImgTag(8);
         $('#qr-value').textContent = `$${Number(v.current_value).toFixed(2)}`;
-        $('#qr-modal').classList.add('active');
+        $('#qr-modal').classList.remove('hidden');
     };
 
     window.closeModal = (id) => {
-        $(`#${id}`).classList.remove('active');
+        $(`#${id}`).classList.add('hidden');
     };
 
     window.shareVoucher = (id, type) => {
@@ -210,7 +180,7 @@
         $('#send-voucher-id').value = id;
         $('#recipient-name').value = v.recipient_name || '';
         $('#recipient-contact').value = v.recipient_contact || '';
-        $('#send-modal').classList.add('active');
+        $('#send-modal').classList.remove('hidden');
     };
 
     function handleFileSelect(e) {
@@ -278,7 +248,7 @@
             }).then(r => r.json());
 
             if (res.success) {
-                $('#send-modal').classList.remove('active');
+                $('#send-modal').classList.add('hidden');
                 await loadVouchers();
                 alert('Asignación guardada con éxito');
             } else {

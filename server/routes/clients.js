@@ -29,24 +29,30 @@ router.use(authorizeManagement);
  */
 router.get('/', async (req, res) => {
     const db = getDB();
+    const isVendor = req.user.role === 'vendor';
+    const companyId = req.user.company_id || req.user.vendor_id;
+
     try {
-        const { rows: clients } = await db.query(`
+        let query = `
             SELECT c.*, 
-              (SELECT COUNT(*) FROM vouchers WHERE client_id = c.id) as voucher_count,
-              (SELECT COALESCE(SUM(initial_value), 0) FROM vouchers WHERE client_id = c.id) as total_value,
-              (SELECT COALESCE(SUM(initial_value - current_value), 0) FROM vouchers WHERE client_id = c.id) as redeemed_value
+              (SELECT COUNT(*) FROM vouchers WHERE client_id = c.id ${isVendor ? 'AND issuing_company_id = $1' : ''}) as voucher_count,
+              (SELECT COALESCE(SUM(initial_value), 0) FROM vouchers WHERE client_id = c.id ${isVendor ? 'AND issuing_company_id = $1' : ''}) as total_value,
+              (SELECT COALESCE(SUM(initial_value - current_value), 0) FROM vouchers WHERE client_id = c.id ${isVendor ? 'AND issuing_company_id = $1' : ''}) as redeemed_value
             FROM clients c
             WHERE c.is_active = 1
             ORDER BY c.name ASC
-        `);
+        `;
+        
+        const params = isVendor ? [companyId] : [];
+        const { rows: clients } = await db.query(query, params);
 
         res.json({
             success: true,
             clients: clients.map(c => ({ 
                 ...c, 
                 is_active: !!c.is_active,
-                total_value: parseFloat(c.total_value),
-                redeemed_value: parseFloat(c.redeemed_value)
+                total_value: parseFloat(c.total_value || 0),
+                redeemed_value: parseFloat(c.redeemed_value || 0)
             }))
         });
     } catch (err) {

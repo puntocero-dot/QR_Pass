@@ -174,17 +174,17 @@
       </p>
 
       <div class="portal-grid">
-        <a href="/app.html" class="portal-card animate delay-1" style="animation-duration: 1s;">
+        <button id="btn-open-business" class="portal-card animate delay-1" style="animation-duration: 1s; cursor: pointer; border: none; width: 100%;">
           <span class="portal-icon">🏦</span>
           <div class="portal-name">Portal de Negocios</div>
           <p class="portal-desc">Acceso para Administradores, Vendedores y Cajeros. Gestiona y canjea vales en tiempo real.</p>
-        </a>
+        </button>
 
-        <a href="/client.html" class="portal-card animate delay-2" style="animation-duration: 1.2s;">
+        <button id="btn-open-client" class="portal-card animate delay-2" style="animation-duration: 1.2s; cursor: pointer; border: none; width: 100%;">
           <span class="portal-icon">👤</span>
           <div class="portal-name">Portal de Clientes</div>
           <p class="portal-desc">Acceso para empresas clientes. Visualiza tus vales, gestiona saldos y distribuye QRs a empleados.</p>
-        </a>
+        </button>
       </div>
     </section>
 
@@ -192,6 +192,63 @@
       © 2026 RESTAURANTES SV — TECNOLOGÍA AL SERVICIO DEL SABOR
     </footer>
   </div>
+
+  <!-- Premium Unified Login Modal -->
+  <div id="login-modal" class="modal-overlay hidden">
+    <div class="glass-card login-modal-content">
+      <button class="close-modal">&times;</button>
+      <div class="login-header">
+        <h2 class="premium-gradient-text" style="font-size: 2rem; font-weight: 800; margin-bottom: 8px;">Bienvenido</h2>
+        <p style="color: rgba(255,255,255,0.5); font-size: 0.9rem;">Ingrese sus credenciales para continuar</p>
+      </div>
+      <form id="unified-login-form" class="login-form" style="margin-top: 32px; display: flex; flex-direction: column; gap: 20px;">
+        <div class="input-group">
+          <label style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.4); margin-bottom: 8px; display: block;">Usuario</label>
+          <input type="text" id="login-username" class="premium-input" placeholder="Tu usuario" required style="width: 100%;">
+        </div>
+        <div class="input-group">
+          <label style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.4); margin-bottom: 8px; display: block;">Contraseña</label>
+          <input type="password" id="login-password" class="premium-input" placeholder="••••••••" required style="width: 100%;">
+        </div>
+        <div id="login-error" class="hidden" style="color: #ff3d00; font-size: 0.85rem; text-align: center; background: rgba(255, 61, 0, 0.1); padding: 10px; border-radius: 8px;"></div>
+        <button type="submit" id="btn-login-submit" class="premium-btn" style="margin-top: 12px;">Iniciar Sesión</button>
+      </form>
+    </div>
+  </div>
+
+  <style>
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      backdrop-filter: blur(10px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      transition: all 0.3s ease;
+    }
+    .login-modal-content {
+      width: 100%;
+      max-width: 440px;
+      padding: 48px 40px;
+      position: relative;
+    }
+    .close-modal {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      background: none;
+      border: none;
+      color: white;
+      font-size: 2rem;
+      cursor: pointer;
+      opacity: 0.5;
+      line-height: 1;
+    }
+    .close-modal:hover { opacity: 1; }
+  </style>
   <script src="/js/app.js?v=1.0.2"></script>
 </body>
 

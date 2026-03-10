@@ -4,23 +4,88 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Admin — Restaurantes</title>
-    <link rel="stylesheet" href="/css/style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐔</text></svg>">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .sidebar {
+            background: rgba(10, 10, 10, 0.4);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            width: 260px;
+            padding: 24px;
+        }
+        .nav-item {
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.5);
+            padding: 12px 16px;
+            border-radius: 12px;
+            width: 100%;
+            text-align: left;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-bottom: 8px;
+            cursor: pointer;
+        }
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+        }
+        .nav-item.active {
+            background: var(--premium-accent);
+            color: white;
+            box-shadow: 0 8px 20px rgba(198, 40, 40, 0.3);
+        }
+        .stat-card {
+            padding: 32px 24px;
+        }
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            font-family: var(--font-heading);
+            color: white;
+            margin-bottom: 4px;
+        }
+        .stat-label {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        .view-title {
+            font-family: var(--font-heading);
+            font-weight: 800;
+            font-size: 2.2rem;
+            margin-bottom: 32px;
+        }
+        .data-table th {
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 0.05em;
+            color: rgba(255, 255, 255, 0.4);
+            padding: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .data-table td {
+            padding: 16px;
+            font-size: 0.9rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+    </style>
 </head>
 <body class="admin-portal">
-    <header class="app-header">
+    <header class="app-header" style="background: rgba(10, 10, 10, 0.8); border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding: 16px 32px;">
         <div class="header-left">
             <div class="logo">
                 <span class="logo-icon">🐔</span>
-                <span class="logo-text">Admin</span>
+                <span class="logo-text" style="font-family: var(--font-heading); font-weight: 800; font-size: 1.5rem; letter-spacing: -0.02em;">Admin <span style="font-weight: 400; opacity: 0.5;">Portal</span></span>
             </div>
         </div>
-        <div class="header-right">
-            <span id="admin-name" class="user-name">Administrador</span>
-            <button id="btn-logout" class="btn btn-ghost btn-sm">Cerrar Sesión</button>
+        <div class="header-right" style="display: flex; gap: 20px; align-items: center;">
+            <span id="admin-name" class="user-name" style="font-family: var(--font-heading); font-weight: 600; font-size: 0.9rem;">Administrador</span>
+            <button id="btn-logout" class="premium-btn" style="padding: 6px 16px; font-size: 0.75rem; background: rgba(255,255,255,0.05);">Cerrar Sesión</button>
         </div>
     </header>
 
@@ -36,29 +101,41 @@
 
         <section class="view-content">
             <div id="view-overview" class="view-pane">
-                <h1 class="view-title">Vista General</h1>
-                <div class="stats-grid">
-                    <div class="stat-card">
+                <h1 class="view-title premium-gradient-text">Vista General</h1>
+                <div class="stats-grid" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));">
+                    <div class="stat-card glass-card">
                         <div class="stat-number" id="stat-total-vouchers">0</div>
                         <div class="stat-label">Vales Emitidos</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-number" id="stat-total-redeemed">0</div>
-                        <div class="stat-label">Vales Redimidos</div>
+                    <div class="stat-card glass-card">
+                        <div class="stat-number" id="stat-active-vouchers">0</div>
+                        <div class="stat-label">Vales Activos</div>
                     </div>
-                    <div class="stat-card">
+                    <div class="stat-card glass-card">
+                        <div class="stat-number" id="stat-total-redeemed">0</div>
+                        <div class="stat-label">Canjes Totales</div>
+                    </div>
+                    <div class="stat-card glass-card">
+                        <div class="stat-number" id="stat-total-value">$0.00</div>
+                        <div class="stat-label">Valor Emitido</div>
+                    </div>
+                    <div class="stat-card glass-card">
+                        <div class="stat-number" id="stat-redeemed-value">$0.00</div>
+                        <div class="stat-label">Valor Redimido</div>
+                    </div>
+                    <div class="stat-card glass-card">
                         <div class="stat-number" id="stat-active-companies">0</div>
-                        <div class="stat-label">Empresas Activas</div>
+                        <div class="stat-label">Empresas</div>
                     </div>
                 </div>
             </div>
 
             <div id="view-users" class="view-pane hidden">
-                <div class="view-header">
-                    <h1 class="view-title">Gestión de Usuarios</h1>
-                    <button id="btn-add-user" class="btn btn-primary">➕ Nuevo Usuario</button>
+                <div class="view-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
+                    <h1 class="view-title premium-gradient-text" style="margin-bottom: 0;">Usuarios</h1>
+                    <button id="btn-add-user" class="premium-btn">➕ Nuevo Usuario</button>
                 </div>
-                <div class="card">
+                <div class="glass-card">
                     <table class="data-table">
                         <thead>
                             <tr>
@@ -75,62 +152,62 @@
             </div>
 
                 <div id="view-clients" class="view-pane hidden">
-                    <div class="view-header">
-                        <h1 class="view-title">Gestión de Empresas</h1>
-                        <button id="btn-add-client" class="btn btn-primary">➕ Nueva Empresa</button>
+                    <div class="view-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
+                        <h1 class="view-title premium-gradient-text" style="margin-bottom: 0;">Empresas</h1>
+                        <button id="btn-add-client" class="premium-btn">➕ Nueva Empresa</button>
                     </div>
                     <div id="clients-grid" class="client-grid"></div>
                 </div>
 
                 <div id="view-vouchers" class="view-pane hidden">
-                    <div class="view-header">
-                        <h1 class="view-title">Gestión de Vales</h1>
+                    <div class="view-header" style="margin-bottom: 32px;">
+                        <h1 class="view-title premium-gradient-text">Vales</h1>
                     </div>
                     
                     <!-- Create Voucher Form -->
-                    <div class="card p-24 mb-24">
+                    <div class="glass-card p-24 mb-24" style="padding: 32px;">
                         <div class="flex justify-between items-center mb-16">
-                            <h3>Generar Nuevos Vales</h3>
-                            <button id="btn-open-bulk" class="btn btn-secondary btn-sm">📤 Carga Masiva (CSV)</button>
+                            <h3 style="font-family: var(--font-heading); font-weight: 700; font-size: 1.2rem;">Generar Nuevos Vales</h3>
+                            <button id="btn-open-bulk" class="btn btn-ghost btn-sm" style="border-radius: 8px;">📤 Carga Masiva (CSV)</button>
                         </div>
                         <form id="create-voucher-form">
                             <div class="grid grid-cols-2 lg:grid-cols-4 gap-16 mb-16">
                                 <div class="form-group mb-0">
-                                    <label>Cliente / Empresa</label>
-                                    <select id="create-voucher-client" required>
+                                    <label style="font-size: 0.7rem; color: rgba(255,255,255,0.4); text-transform: uppercase; margin-bottom: 8px; display: block;">Cliente / Empresa</label>
+                                    <select id="create-voucher-client" class="premium-input" required>
                                         <option value="">— Seleccionar —</option>
                                     </select>
                                 </div>
                                 <div class="form-group mb-0">
-                                    <label>Valor (USD)</label>
-                                    <input type="number" id="create-voucher-value" step="0.01" min="0.01" placeholder="25.00" required>
+                                    <label style="font-size: 0.7rem; color: rgba(255,255,255,0.4); text-transform: uppercase; margin-bottom: 8px; display: block;">Valor (USD)</label>
+                                    <input type="number" id="create-voucher-value" class="premium-input" step="0.01" min="0.01" placeholder="25.00" required>
                                 </div>
                                 <div class="form-group mb-0">
-                                    <label>Cantidad</label>
-                                    <input type="number" id="create-voucher-qty" min="1" max="500" value="1" required>
+                                    <label style="font-size: 0.7rem; color: rgba(255,255,255,0.4); text-transform: uppercase; margin-bottom: 8px; display: block;">Cantidad</label>
+                                    <input type="number" id="create-voucher-qty" class="premium-input" min="1" max="500" value="1" required>
                                 </div>
                                 <div class="form-group mb-0">
-                                    <label>Tipo Uso</label>
-                                    <select id="create-voucher-type">
+                                    <label style="font-size: 0.7rem; color: rgba(255,255,255,0.4); text-transform: uppercase; margin-bottom: 8px; display: block;">Tipo Uso</label>
+                                    <select id="create-voucher-type" class="premium-input">
                                         <option value="Multiple">Múltiple</option>
                                         <option value="Single">Único</option>
                                     </select>
                                 </div>
                             </div>
-                            <button type="submit" class="btn btn-primary btn-block">GENERAR VALES CON QR</button>
+                            <button type="submit" class="premium-btn" style="width: 100%; height: 54px; font-size: 1rem;">GENERAR VALES CON QR</button>
                         </form>
                     </div>
 
                     <!-- Batch Result View -->
-                    <div id="batch-result" class="card p-24 mb-24 hidden">
+                    <div id="batch-result" class="glass-card p-24 mb-24 hidden" style="padding: 32px;">
                         <div class="flex justify-between items-center mb-16">
-                            <h3 id="batch-title">✅ Vales Creados</h3>
+                            <h3 id="batch-title" style="font-family: var(--font-heading); font-weight: 700;">✅ Vales Creados</h3>
                             <button class="btn btn-ghost btn-sm" onclick="$('#batch-result').classList.add('hidden')">Ocultar</button>
                         </div>
                         <div id="batch-qr-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-16"></div>
                     </div>
 
-                    <div class="card">
+                    <div class="glass-card">
                         <table class="data-table">
                             <thead>
                                 <tr>
@@ -151,29 +228,28 @@
     </main>
 
     <!-- Modal User -->
-    <div id="modal-user" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="modal-user-title">Nuevo Usuario</h2>
-                <button class="btn-close-modal">&times;</button>
+    <div id="modal-user" class="modal-overlay hidden">
+        <div class="glass-card login-modal-content" style="padding: 40px; max-width: 500px;">
+            <div class="modal-header" style="margin-bottom: 24px;">
+                <h2 id="modal-user-title" style="font-family: var(--font-heading); font-weight: 800; font-size: 1.5rem;">Nuevo Usuario</h2>
             </div>
             <form id="user-form">
                 <input type="hidden" id="user-id">
                 <div class="form-group">
-                    <label>Nombre Completo</label>
-                    <input type="text" id="user-full-name" required>
+                    <label style="font-size: 0.7rem; color: rgba(255,255,255,0.4); text-transform: uppercase;">Nombre Completo</label>
+                    <input type="text" id="user-full-name" class="premium-input" required>
                 </div>
                 <div class="form-group">
-                    <label>Usuario</label>
-                    <input type="text" id="user-username" required>
+                    <label style="font-size: 0.7rem; color: rgba(255,255,255,0.4); text-transform: uppercase;">Usuario</label>
+                    <input type="text" id="user-username" class="premium-input" required>
                 </div>
                 <div class="form-group">
-                    <label>Contraseña</label>
-                    <input type="password" id="user-password" required>
+                    <label style="font-size: 0.7rem; color: rgba(255,255,255,0.4); text-transform: uppercase;">Contraseña</label>
+                    <input type="password" id="user-password" class="premium-input" required>
                 </div>
                 <div class="form-group">
-                    <label>Rol</label>
-                    <select id="user-role" required>
+                    <label style="font-size: 0.7rem; color: rgba(255,255,255,0.4); text-transform: uppercase;">Rol</label>
+                    <select id="user-role" class="premium-input" required>
                         <option value="admin">Administrador</option>
                         <option value="vendor">Vendedor</option>
                         <option value="cashier">Cajero</option>
@@ -181,87 +257,96 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label id="label-related-id">ID Relacionado (Restaurante/Vendedor)</label>
-                    <input type="text" id="user-related-id">
-                    <select id="user-client-id" class="hidden"></select>
+                    <label id="label-related-id" style="font-size: 0.7rem; color: rgba(255,255,255,0.4); text-transform: uppercase;">ID Relacionado</label>
+                    <input type="text" id="user-related-id" class="premium-input">
+                    <select id="user-client-id" class="premium-input hidden"></select>
                 </div>
-                <button type="submit" class="btn btn-primary btn-block">Guardar Usuario</button>
+                <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 32px;">
+                    <button type="submit" class="premium-btn">Guardar Usuario</button>
+                    <button type="button" class="btn btn-ghost btn-close-modal">Cancelar</button>
+                </div>
             </form>
         </div>
     </div>
 
     <!-- Modal Client -->
-    <div id="modal-client" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="modal-client-title">Nueva Empresa</h2>
-                <button class="btn-close-modal">&times;</button>
+    <div id="modal-client" class="modal-overlay hidden">
+        <div class="glass-card login-modal-content" style="padding: 40px; max-width: 600px;">
+            <div class="modal-header" style="margin-bottom: 24px;">
+                <h2 id="modal-client-title" style="font-family: var(--font-heading); font-weight: 800; font-size: 1.5rem;">Empresa</h2>
             </div>
             <form id="client-form">
                 <input type="hidden" id="client-id">
                 <div class="form-group">
-                    <label>Nombre / Razón Social</label>
-                    <input type="text" id="client-name" required>
+                    <label style="font-size: 0.7rem; color: rgba(255,255,255,0.4); text-transform: uppercase;">Razón Social</label>
+                    <input type="text" id="client-name" class="premium-input" required>
                 </div>
                 <div class="grid grid-cols-2 gap-16">
                     <div class="form-group">
-                        <label>NIT / NRC</label>
-                        <input type="text" id="client-tax-id">
+                        <label style="font-size: 0.7rem; color: rgba(255,255,255,0.4); text-transform: uppercase;">NIT / NRC</label>
+                        <input type="text" id="client-tax-id" class="premium-input">
                     </div>
                     <div class="form-group">
-                        <label>Email</label>
-                        <input type="email" id="client-email">
+                        <label style="font-size: 0.7rem; color: rgba(255,255,255,0.4); text-transform: uppercase;">Email</label>
+                        <input type="email" id="client-email" class="premium-input">
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>Persona de Contacto</label>
-                    <input type="text" id="client-contact">
+                    <label style="font-size: 0.7rem; color: rgba(255,255,255,0.4); text-transform: uppercase;">Representante</label>
+                    <input type="text" id="client-contact" class="premium-input">
                 </div>
-                <button type="submit" class="btn btn-primary btn-block">Guardar Empresa</button>
+                <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 32px;">
+                    <button type="submit" class="premium-btn">Guardar Empresa</button>
+                    <button type="button" class="btn btn-ghost btn-close-modal">Cancelar</button>
+                </div>
             </form>
         </div>
     </div>
 
     <!-- Modal Bulk -->
-    <div id="modal-bulk" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Carga Masiva de Vales</h2>
-                <button class="btn-close-modal">&times;</button>
+    <div id="modal-bulk" class="modal-overlay hidden">
+        <div class="glass-card login-modal-content" style="padding: 40px; max-width: 500px;">
+            <div class="modal-header" style="margin-bottom: 24px;">
+                <h2 style="font-family: var(--font-heading); font-weight: 800; font-size: 1.5rem;">Carga Masiva</h2>
             </div>
-            <div class="p-16 mb-16 bg-info bg-opacity-10 border border-info rounded">
-                <p class="text-xs text-info">Suba un CSV con columnas: <code>nombre, contacto</code></p>
+            <div style="background: rgba(33,150,243,0.1); border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+                <p style="font-size: 0.8rem; color: #90caf9;">CSV: <code>nombre, contacto</code></p>
             </div>
             <form id="bulk-form">
                 <div class="form-group">
-                    <label>Empresa Destino</label>
-                    <select id="bulk-client" required></select>
+                    <label style="font-size: 0.7rem; color: rgba(255,255,255,0.4); text-transform: uppercase;">Empresa</label>
+                    <select id="bulk-client" class="premium-input" required></select>
                 </div>
                 <div class="form-group">
-                    <label>Valor USD</label>
-                    <input type="number" id="bulk-value" step="0.01" value="10.00" required>
+                    <label style="font-size: 0.7rem; color: rgba(255,255,255,0.4); text-transform: uppercase;">Valor USD</label>
+                    <input type="number" id="bulk-value" class="premium-input" step="0.01" value="10.00" required>
                 </div>
                 <div class="form-group">
-                    <label>Archivo CSV</label>
-                    <input type="file" id="bulk-file" accept=".csv" required>
+                    <label style="font-size: 0.7rem; color: rgba(255,255,255,0.4); text-transform: uppercase;">Archivo CSV</label>
+                    <input type="file" id="bulk-file" class="premium-input" accept=".csv" required>
                 </div>
-                <button type="submit" class="btn btn-primary btn-block">Procesar Carga</button>
+                <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 32px;">
+                    <button type="submit" class="premium-btn">Procesar Carga</button>
+                    <button type="button" class="btn btn-ghost btn-close-modal">Cancelar</button>
+                </div>
             </form>
         </div>
     </div>
 
     <!-- QR Modal -->
-    <div id="modal-qr" class="modal">
-        <div class="modal-content text-center">
-            <div class="modal-header">
-                <h2>Código QR del Vale</h2>
-                <button class="btn-close-modal">&times;</button>
+    <div id="modal-qr" class="modal-overlay hidden">
+        <div class="glass-card login-modal-content text-center" style="padding: 40px;">
+            <div class="modal-header" style="margin-bottom: 24px;">
+                <h2 style="font-family: var(--font-heading); font-weight: 800; font-size: 1.5rem;">QR del Vale</h2>
             </div>
-            <div id="qr-display" class="mb-16 inline-block bg-white p-16 rounded"></div>
-            <div class="text-left bg-gray-900 p-12 rounded">
-                <code id="qr-payload-text" class="text-xs break-all text-gray-400"></code>
+            <div id="qr-display" class="glass-card" style="background: white; padding: 16px; display: inline-block; margin-bottom: 24px;"></div>
+            <div style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; margin-bottom: 24px;">
+                <code id="qr-payload-text" style="font-size: 0.7rem; color: rgba(255,255,255,0.3); word-break: break-all;"></code>
             </div>
-            <button id="btn-download-qr" class="btn btn-secondary btn-block mt-16">Descargar Imagen</button>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <button id="btn-download-qr" class="premium-btn">Descargar QR</button>
+                <button type="button" class="btn btn-ghost btn-close-modal">Cerrar</button>
+            </div>
         </div>
     </div>
 

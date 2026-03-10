@@ -39,41 +39,42 @@
     }
 
     function bindEvents() {
+        // Unified Login Modal (index.html)
+        safeAddListener('#btn-open-business', 'click', () => {
+            $('#login-modal').classList.remove('hidden');
+        });
+        safeAddListener('#btn-open-client', 'click', () => {
+            $('#login-modal').classList.remove('hidden');
+        });
+        safeAddListener('.close-modal', 'click', () => {
+            $('#login-modal').classList.add('hidden');
+        });
+
+        const unifiedLoginForm = $('#unified-login-form');
+        if (unifiedLoginForm) {
+            unifiedLoginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await handleLogin(
+                    $('#login-username').value,
+                    $('#login-password').value,
+                    $('#login-error'),
+                    $('#btn-login-submit')
+                );
+            });
+        }
+
         safeAddListener('#btn-start-login', 'click', () => switchView('login'));
         
         const loginForm = $('#login-form');
         if (loginForm) {
             loginForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const username = $('#login-user').value;
-                const password = $('#login-pass').value;
-                const errorEl = $('#login-error');
-                const btn = $('#btn-login');
-
-                btn.disabled = true;
-                try {
-                    const res = await fetch('/api/auth/login', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ username, password })
-                    }).then(r => r.json());
-
-                    if (res.success) {
-                        state.token = res.token;
-                        state.user = res.user;
-                        localStorage.setItem('restaurantes_token', res.token);
-                        localStorage.setItem('restaurantes_user', JSON.stringify(res.user));
-                        
-                        if (res.user.role === 'admin' || res.user.role === 'vendor') location.href = '/admin.html';
-                        else showApp();
-                    } else {
-                        errorEl.textContent = res.error;
-                        errorEl.classList.remove('hidden');
-                    }
-                } catch (err) {
-                    errorEl.textContent = 'Error de conexión';
-                    errorEl.classList.remove('hidden');
-                } finally { btn.disabled = false; }
+                await handleLogin(
+                    $('#login-user').value,
+                    $('#login-pass').value,
+                    $('#login-error'),
+                    $('#btn-login')
+                );
             });
         }
 
@@ -141,6 +142,45 @@
         if (nameEl) nameEl.textContent = state.user.restaurant_name || 'Restaurante';
         
         switchView('scanner');
+    }
+
+    async function handleLogin(username, password, errorEl, btn) {
+        btn.disabled = true;
+        try {
+            const res = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            }).then(r => r.json());
+
+            if (res.success) {
+                state.token = res.token;
+                state.user = res.user;
+                
+                // Store based on app logic (Company portal uses different keys currently, let's unify or handle both)
+                localStorage.setItem('restaurantes_token', res.token);
+                localStorage.setItem('restaurantes_user', JSON.stringify(res.user));
+                
+                if (res.user.role === 'client') {
+                    // Sync with client portal keys
+                    localStorage.setItem('company_portal_token', res.token);
+                    localStorage.setItem('company_portal_client', JSON.stringify(res.user));
+                    location.href = '/client.html';
+                } else if (res.user.role === 'admin' || res.user.role === 'vendor') {
+                    location.href = '/admin.html';
+                } else {
+                    location.href = '/app.html';
+                }
+            } else {
+                errorEl.textContent = res.error;
+                errorEl.classList.remove('hidden');
+            }
+        } catch (err) {
+            errorEl.textContent = 'Error de conexión';
+            errorEl.classList.remove('hidden');
+        } finally {
+            btn.disabled = false;
+        }
     }
 
     function handleLogout() {

@@ -381,51 +381,49 @@
         </div>
 
         <div id="main-view" class="hidden">
-            <header>
-                <div class="logo">🎟️ QR Pass</div>
-                <div class="client-info">
-                    <div class="flex items-center gap-8">
-                        <h1 id="client-name">Empresa</h1>
-                        <button id="btn-logout" class="btn btn-ghost" style="padding: 4px 8px; font-size: 0.7rem;">Cerrar Sesión</button>
+            <header style="border-bottom: 1px solid rgba(255,255,255,0.08); padding: 24px 0;">
+                <div class="logo" style="color: white; font-family: var(--font-heading); font-weight: 800; font-size: 1.8rem;">👤 Client Portal</div>
+                <div class="client-info" style="display: flex; flex-direction: column; align-items: flex-end;">
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <h1 id="client-name" style="font-family: var(--font-heading); font-size: 1.1rem; font-weight: 700;">Empresa</h1>
+                        <button id="btn-logout" class="premium-btn" style="padding: 6px 12px; font-size: 0.65rem; border-radius: 6px;">Cerrar Sesión</button>
                     </div>
-                    <span id="client-id">Portal Corporativo</span>
                 </div>
             </header>
 
             <div class="stats-grid">
-                <div class="stat-card">
+                <div class="stat-card glass-card">
                     <span class="stat-label">Vales Disponibles</span>
                     <span class="stat-value" id="stat-count">0</span>
                 </div>
-                <div class="stat-card">
-                    <span class="stat-label">Total en Saldo</span>
+                <div class="stat-card glass-card">
+                    <span class="stat-label">Saldo Total</span>
                     <span class="stat-value" id="stat-value">$0.00</span>
                 </div>
             </div>
 
-            <div class="section-header">
-                <h2>Tus Vales Emitidos</h2>
-                <div style="display:flex; gap:10px;">
-                    <button class="tab-btn active" data-tab="all">Todos</button>
-                    <button class="tab-btn" data-tab="assigned">Repartidos</button>
+            <div class="section-header" style="margin-bottom: 32px;">
+                <h2 class="premium-gradient-text" style="font-size: 1.6rem;">Mis Vales</h2>
+                <div style="display:flex; gap:8px;">
+                    <button class="tab-btn active" data-tab="all" style="background: rgba(255,255,255,0.05); padding: 8px 16px; border-radius: 20px; font-size: 0.8rem;">Todos</button>
+                    <button class="tab-btn" data-tab="assigned" style="background: rgba(255,255,255,0.05); padding: 8px 16px; border-radius: 20px; font-size: 0.8rem;">Repartidos</button>
                 </div>
             </div>
 
-            <div class="card mb-20 fade-in">
+            <div class="glass-card mb-20 fade-in" style="padding: 32px; margin-bottom: 32px;">
                 <div class="card-header">
-                    <h3>Repartir Vales Masivamente</h3>
-                    <p class="text-secondary">Cargue una lista de correos o números para asignar vales disponibles.</p>
+                    <h3 style="font-family: var(--font-heading); font-weight: 700; font-size: 1.3rem; margin-bottom: 8px;">Carga Masiva</h3>
+                    <p style="color: rgba(255,255,255,0.4); font-size: 0.85rem;">Distribuye vales a empleados subiendo una lista (.csv o .txt).</p>
                 </div>
                 <div class="bulk-actions">
-                    <div class="form-group">
-                        <label>Subir archivo CSV (un correo/número por línea)</label>
-                        <input type="file" id="bulk-csv" accept=".csv,.txt" class="input-file">
+                    <div class="form-group" style="margin-top: 16px;">
+                        <input type="file" id="bulk-csv" accept=".csv,.txt" class="premium-input" style="width: 100%; padding: 12px;">
                     </div>
-                    <button id="btn-process-bulk" class="btn btn-secondary">Procesar Lista</button>
+                    <button id="btn-process-bulk" class="premium-btn">Procesar Lista</button>
                 </div>
                 <div id="bulk-preview" class="hidden mt-10">
-                    <p id="bulk-stats">...</p>
-                    <button id="btn-confirm-bulk" class="btn btn-primary">Confirmar Asignación</button>
+                    <p id="bulk-stats" style="margin-bottom: 16px; font-weight: 600;">...</p>
+                    <button id="btn-confirm-bulk" class="premium-btn">Confirmar Asignación</button>
                 </div>
             </div>
 
@@ -440,56 +438,34 @@
     </div>
 
     <!-- QR Modal -->
-    <div class="modal" id="qr-modal">
-        <div class="modal-content">
-            <h3 style="text-align:center;">Vale Canjeable</h3>
-            <div id="qr-container" class="qr-placeholder"></div>
-            <p id="qr-value"
-                style="text-align:center; font-size:1.4rem; font-weight:800; color:var(--accent-orange); margin-bottom:4px;">
-                $0.00</p>
-            <p id="qr-info"
-                style="text-align:center; font-size:0.85rem; color:var(--text-secondary); margin-bottom:var(--space-lg);">
-                Escanea este código en el mostrador</p>
-            <button class="btn btn-ghost" style="width:100%;" onclick="closeModal('qr-modal')">Cerrar</button>
+    <div id="qr-modal" class="modal-overlay hidden">
+        <div class="glass-card login-modal-content" style="padding: 40px; text-align: center;">
+            <h3 style="font-family: var(--font-heading); font-weight: 800; font-size: 1.5rem; margin-bottom: 24px;">Vale Digital</h3>
+            <div id="qr-container" class="glass-card" style="background: white; padding: 16px; display: inline-block;"></div>
+            <div id="qr-value" style="font-family: var(--font-heading); font-size: 2.2rem; font-weight: 800; color: var(--premium-accent); margin-top: 24px;">$0.00</div>
+            <p style="color: rgba(255,255,255,0.5); font-size: 0.85rem; margin: 8px 0 32px;">Presenta este código al momento de pagar</p>
+            <button class="premium-btn" style="width: 100%;" onclick="document.getElementById('qr-modal').classList.add('hidden')">Cerrar</button>
         </div>
     </div>
 
-    <section id="login-section" class="card fade-in">
-        <h2 class="text-center">Acceso Portal de Empresa</h2>
-        <p class="text-secondary text-center">Gestione los vales de su organización</p>
-        <form id="portal-login-form">
-            <div class="form-group">
-                <label for="portal-username">Usuario</label>
-                <input type="text" id="portal-username" placeholder="Ingrese su usuario" required>
-            </div>
-            <div class="form-group">
-                <label for="portal-password">Contraseña</label>
-                <input type="password" id="portal-password" placeholder="••••••••" required>
-            </div>
-            <button type="submit" class="btn btn-primary btn-block">Ingresar al Portal</button>
-        </form>
-        <div id="login-error" class="error-text hidden mt-10 text-center"></div>
-    </section>
-
     <!-- Send/Assign Modal -->
-    <div class="modal" id="send-modal">
-        <div class="modal-content">
-            <h3>Repartir Vale</h3>
-            <p style="color:var(--text-secondary); font-size:0.85rem; margin-bottom:var(--space-md);">Identifica a quién
-                pertenece este vale para enviarlo.</p>
+    <div id="send-modal" class="modal-overlay hidden">
+        <div class="glass-card login-modal-content" style="padding: 40px;">
+            <h3 style="font-family: var(--font-heading); font-weight: 800; font-size: 1.5rem; margin-bottom: 8px;">Asignar Vale</h3>
+            <p style="color: rgba(255,255,255,0.4); font-size: 0.85rem; margin-bottom: 24px;">Identifica al empleado que usará este vale.</p>
             <form id="send-form">
                 <input type="hidden" id="send-voucher-id">
                 <div class="input-group">
-                    <label>Nombre del Empleado</label>
-                    <input type="text" id="recipient-name" placeholder="Ej: Juan Pérez" required>
+                    <label style="font-size: 0.75rem; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 8px; display: block;">Nombre del Empleado</label>
+                    <input type="text" id="recipient-name" class="premium-input" placeholder="Ej: Juan Pérez" required style="width: 100%;">
                 </div>
-                <div class="input-group">
-                    <label>Email o WhatsApp (Opcional)</label>
-                    <input type="text" id="recipient-contact" placeholder="juan@ejemplo.com o +503...">
+                <div class="input-group" style="margin-top: 16px;">
+                    <label style="font-size: 0.75rem; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 8px; display: block;">Contacto (Opcional)</label>
+                    <input type="text" id="recipient-contact" class="premium-input" placeholder="Email o WhatsApp" style="width: 100%;">
                 </div>
-                <div class="v-actions" style="margin-top:var(--space-lg);">
-                    <button type="submit" class="btn btn-primary">Registrar</button>
-                    <button type="button" class="btn btn-ghost" onclick="closeModal('send-modal')">Cancelar</button>
+                <div class="confirm-actions" style="display: flex; flex-direction: column; gap: 12px; margin-top: 32px;">
+                    <button type="submit" class="premium-btn">Registrar Asignación</button>
+                    <button type="button" class="btn btn-ghost" onclick="document.getElementById('send-modal').classList.add('hidden')">Cancelar</button>
                 </div>
             </form>
         </div>

@@ -52,26 +52,28 @@
         $('#btn-add-user').addEventListener('click', () => {
             $('#modal-user-title').textContent = 'Nuevo Usuario';
             $('#user-form').reset();
-            $('#modal-user').classList.add('active');
+            $('#user-password').placeholder = 'Contraseña';
+            $('#modal-user').classList.remove('hidden');
         });
 
         $('#btn-add-client').addEventListener('click', () => {
             $('#modal-client-title').textContent = 'Nueva Empresa';
             $('#client-form').reset();
             $('#client-id').value = '';
-            $('#modal-client').classList.add('active');
+            $('#modal-client').classList.remove('hidden');
         });
 
         $('#btn-open-bulk').addEventListener('click', () => {
             const select = $('#bulk-client');
             select.innerHTML = '<option value="">— Seleccionar —</option>' + 
                 state.clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-            $('#modal-bulk').classList.add('active');
+            $('#modal-bulk').classList.remove('hidden');
         });
 
         $$('.btn-close-modal').forEach(btn => {
             btn.addEventListener('click', () => {
-                btn.closest('.modal').classList.remove('active');
+                const modal = btn.closest('.modal-overlay');
+                if (modal) modal.classList.add('hidden');
             });
         });
 
@@ -218,16 +220,22 @@
         const grid = $('#clients-grid');
         if (!grid) return;
         grid.innerHTML = state.clients.map(c => `
-            <div class="card p-24">
-                <h3 class="mb-4">${c.name}</h3>
-                <p class="text-xs text-secondary mb-12">NIT: ${c.tax_id || '—'}</p>
-                <div class="flex justify-between text-xs mb-16">
-                    <span>Vales: <strong>${c.voucher_count || 0}</strong></span>
-                    <span>Consumido: <strong>$${Number(c.redeemed_value || 0).toFixed(2)}</strong></span>
+            <div class="glass-card p-24" style="padding: 24px; display: flex; flex-direction: column;">
+                <h3 style="font-family: var(--font-heading); font-weight: 700; font-size: 1.2rem; margin-bottom: 8px;">${c.name}</h3>
+                <p style="font-size: 0.75rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 20px;">NIT: ${c.tax_id || '—'}</p>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 24px;">
+                    <div style="text-align: left;">
+                        <span style="display: block; font-size: 0.65rem; color: rgba(255,255,255,0.3); text-transform: uppercase;">Vales</span>
+                        <span style="font-weight: 700; color: white;">${c.voucher_count || 0}</span>
+                    </div>
+                    <div style="text-align: right;">
+                        <span style="display: block; font-size: 0.65rem; color: rgba(255,255,255,0.3); text-transform: uppercase;">Redimido</span>
+                        <span style="font-weight: 700; color: var(--premium-accent);">$${Number(c.redeemed_value || 0).toFixed(2)}</span>
+                    </div>
                 </div>
-                <div class="flex gap-8">
-                    <button class="btn btn-secondary btn-sm flex-1" onclick="editClient('${c.id}')">Editar</button>
-                    <button class="btn btn-ghost btn-sm" onclick="copyPortalLink('${c.access_token}')">Link</button>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: auto;">
+                    <button class="premium-btn" style="padding: 8px; font-size: 0.75rem;" onclick="editClient('${c.id}')">Editar</button>
+                    <button class="btn btn-ghost" style="padding: 8px; font-size: 0.75rem;" onclick="copyPortalLink('${c.access_token}')">Link Portal</button>
                 </div>
             </div>
         `).join('');
@@ -264,7 +272,7 @@
             }).then(r => r.json());
 
             if (res.success) {
-                $('#modal-client').classList.remove('active');
+                $('#modal-client').classList.add('hidden');
                 loadClients();
             } else { alert(res.error); }
         } catch (e) { alert('Error guardando cliente'); }
@@ -348,7 +356,7 @@
                 }).then(r => r.json());
 
                 if (res.success) {
-                    $('#modal-bulk').classList.remove('active');
+                    $('#modal-bulk').classList.add('hidden');
                     renderBatchResult(res);
                     loadVouchers();
                 } else { alert(res.error); }
@@ -365,7 +373,7 @@
         qr.make();
         $('#qr-display').innerHTML = qr.createImgTag(5);
         $('#qr-payload-text').textContent = v.qr_payload;
-        $('#modal-qr').classList.add('active');
+        $('#modal-qr').classList.remove('hidden');
     };
 
     window.editClient = (id) => {
@@ -377,7 +385,7 @@
         $('#client-tax-id').value = c.tax_id || '';
         $('#client-email').value = c.email || '';
         $('#client-contact').value = c.contact_person || '';
-        $('#modal-client').classList.add('active');
+        $('#modal-client').classList.remove('hidden');
     };
 
     window.copyPortalLink = (token) => {
@@ -409,7 +417,7 @@
             }).then(r => r.json());
 
             if (res.success) {
-                $('#modal-user').classList.remove('active');
+                $('#modal-user').classList.add('hidden');
                 loadUsers();
             } else {
                 alert(res.error || 'Error al guardar');
@@ -433,8 +441,9 @@
             $('#user-related-id').value = u.related_id;
         }
         
-        $('#user-password').value = '********'; 
-        $('#modal-user').classList.add('active');
+        $('#user-password').value = ''; 
+        $('#user-password').placeholder = '(Dejar vacío para no cambiar)';
+        $('#modal-user').classList.remove('hidden');
     };
 
     window.deleteUser = async (id) => {

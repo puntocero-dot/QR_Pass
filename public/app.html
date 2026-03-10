@@ -23,15 +23,17 @@
     .nav-bar {
       display: flex;
       justify-content: space-around;
-      background: white;
+      background: rgba(10, 10, 10, 0.8);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       padding: var(--space-sm);
-      border-top: 1px solid var(--gray-200);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
       position: fixed;
       bottom: 0;
       left: 0;
       right: 0;
       z-index: 100;
-      box-shadow: 0 -4px 12px rgba(0,0,0,0.05);
+      height: 70px;
     }
 
     .nav-item {
@@ -39,45 +41,59 @@
       flex-direction: column;
       align-items: center;
       gap: 4px;
-      font-size: 0.75rem;
-      color: var(--gray-500);
+      font-size: 0.7rem;
+      color: rgba(255, 255, 255, 0.4);
       background: none;
       border: none;
       padding: 8px;
+      transition: all 0.3s ease;
+      font-family: var(--font-heading);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
 
     .nav-item.active {
-      color: var(--red-600);
+      color: var(--premium-accent);
     }
 
     .nav-item svg {
-      width: 24px;
-      height: 24px;
+      width: 20px;
+      height: 20px;
+      margin-bottom: 2px;
     }
 
     .stats-mini {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 15px;
-      margin-bottom: 20px;
+      gap: 16px;
+      margin-bottom: 24px;
+      width: 100%;
     }
     .stat-box {
-      background: white;
-      padding: 15px;
-      border-radius: 12px;
+      padding: 24px 16px;
       text-align: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     }
     .stat-box span {
       display: block;
-      font-size: 1.5rem;
+      font-size: 1.8rem;
       font-weight: 800;
-      color: var(--red-600);
+      color: white;
+      font-family: var(--font-heading);
     }
     .stat-box label {
-      font-size: 0.8rem;
-      color: var(--gray-500);
+      font-size: 0.7rem;
+      color: rgba(255, 255, 255, 0.4);
       text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-top: 4px;
+      display: block;
+    }
+    h2 {
+        font-family: var(--font-heading);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        margin-bottom: 16px;
     }
   </style>
 </head>
@@ -132,33 +148,33 @@
 
     <!-- ─── Scanner View ─── -->
     <section id="view-scanner" class="view">
-      <div class="scanner-container">
-        <h2>Escanear Vale</h2>
-        <div id="scanner-box" class="scanner-box">
+      <div class="scanner-container" style="padding-top: 40px;">
+        <h2 class="premium-gradient-text text-center" style="font-size: 2rem;">Escanear Vale</h2>
+        <div id="scanner-box" class="scanner-box" style="border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 50px rgba(0,0,0,0.3);">
           <div id="qr-reader" class="qr-reader"></div>
           <div class="scanner-overlay">
             <div class="scanner-corners"></div>
           </div>
         </div>
-        <div class="manual-input-group mt-20">
-          <input type="text" id="manual-code" placeholder="O ingrese código manual...">
-          <button id="btn-manual-validate" class="btn btn-secondary">Validar</button>
+        <div class="manual-input-group mt-20" style="display: flex; flex-direction: column; gap: 12px; margin-top: 32px;">
+          <input type="text" id="manual-code" class="premium-input" placeholder="O ingrese código manual..." style="text-align: center;">
+          <button id="btn-manual-validate" class="premium-btn">Validar Código</button>
         </div>
       </div>
     </section>
 
     <!-- ─── Cuadre View ─── -->
     <section id="view-cuadre" class="view">
-      <div class="container py-20">
-        <h2>Mi Cuadre Diario</h2>
+      <div class="container py-20" style="width: 100%; max-width: 500px; padding: 24px;">
+        <h2 class="premium-gradient-text">Mi Cuadre Diario</h2>
         <div class="stats-mini">
-          <div class="stat-box">
+          <div class="stat-box glass-card">
             <span id="cuadre-count">0</span>
-            <label>Canjes</label>
+            <label>Canjes Hoy</label>
           </div>
-          <div class="stat-box">
+          <div class="stat-box glass-card">
             <span id="cuadre-total">$0.00</span>
-            <label>Total</label>
+            <label>Monto Total</label>
           </div>
         </div>
         <div id="cuadre-history" class="history-list">
@@ -169,36 +185,37 @@
 
     <!-- ─── Voucher Detail View ─── -->
     <section id="view-voucher" class="view">
-      <div class="voucher-container">
-        <div class="card voucher-card">
-          <h3 id="voucher-company">Empresa</h3>
+      <div class="voucher-container" style="padding-top: 40px;">
+        <div class="glass-card voucher-card" style="padding: 32px;">
+          <h3 id="voucher-company" style="font-family: var(--font-heading); font-weight: 700; color: rgba(255,255,255,0.6); margin-bottom: 16px;">Empresa</h3>
           <div class="stat-block">
-            <label>Saldo</label>
-            <h2 id="voucher-balance">$0.00</h2>
+            <label style="font-size: 0.7rem; letter-spacing: 0.1em; color: rgba(255,255,255,0.4);">SALDO DISPONIBLE</label>
+            <h2 id="voucher-balance" style="font-size: 3rem; margin: 8px 0; color: var(--premium-accent);">$0.00</h2>
           </div>
-          <p>Vence: <span id="voucher-expiry">—</span></p>
+          <p style="font-size: 0.85rem; color: rgba(255,255,255,0.5);">Vence: <span id="voucher-expiry" style="color: white; font-weight: 600;">—</span></p>
         </div>
-        <div class="redeem-section mt-20">
+        <div class="redeem-section mt-20" style="display: flex; flex-direction: column; gap: 16px; margin-top: 32px;">
           <div class="input-group">
-            <label>Monto a Canjear</label>
-            <input type="number" id="redeem-amount" step="0.01" class="input-lg">
+            <label style="font-size: 0.75rem; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 8px; display: block;">Monto a Canjear</label>
+            <input type="number" id="redeem-amount" step="0.01" class="premium-input" style="font-size: 1.5rem; text-align: center; font-weight: 700;">
           </div>
-          <button id="btn-redeem" class="btn btn-danger btn-block btn-lg">CANJEAR</button>
-          <button id="btn-cancel-voucher" class="btn btn-ghost btn-block">Volver</button>
+          <button id="btn-redeem" class="premium-btn" style="height: 64px; font-size: 1.2rem;">CONFIRMAR CANJE</button>
+          <button id="btn-cancel-voucher" class="btn btn-ghost" style="margin-top: 8px;">Volver al Escáner</button>
         </div>
       </div>
     </section>
 
     <!-- ─── Result View ─── -->
     <section id="view-result" class="view">
-      <div class="result-container text-center">
-        <div class="result-icon success">✓</div>
-        <h2>¡Canje Exitoso!</h2>
-        <div class="card my-20">
-          <p>Monto: <strong id="result-amount">$0.00</strong></p>
-          <p>Ticket: <strong id="result-invoice">—</strong></p>
+      <div class="result-container text-center" style="padding-top: 60px; max-width: 400px;">
+        <div class="result-icon success" style="width: 80px; height: 80px; background: #2e7d32; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: white; margin: 0 auto 24px;">✓</div>
+        <h2 class="premium-gradient-text" style="font-size: 2.2rem;">¡Canje Exitoso!</h2>
+        <div class="glass-card my-20" style="padding: 24px; margin: 32px 0;">
+          <p style="color: rgba(255,255,255,0.5); font-size: 0.9rem;">Monto Canjeado:</p>
+          <div id="result-amount" style="font-size: 2.5rem; font-weight: 800; margin: 8px 0;">$0.00</div>
+          <p style="color: rgba(255,255,255,0.3); font-size: 0.8rem; margin-top: 12px;">Ticket: <span id="result-invoice" style="color: rgba(255,255,255,0.6);">—</span></p>
         </div>
-        <button id="btn-new-scan" class="btn btn-primary btn-block">Nuevo Escaneo</button>
+        <button id="btn-new-scan" class="premium-btn" style="width: 100%;">Nuevo Escaneo</button>
       </div>
     </section>
 
@@ -217,17 +234,17 @@
   </div>
 
   <!-- Confirm Modal -->
-  <div id="confirm-modal" class="confirm-overlay hidden">
-    <div class="confirm-dialog">
-      <h3>Confirmar Canje</h3>
-      <div id="confirm-body" class="confirm-body py-10"></div>
-      <div class="form-group mb-10">
-        <label>Número de Ticket</label>
-        <input type="text" id="invoice-number" placeholder="Ej: 12345">
+  <div id="confirm-modal" class="modal-overlay hidden">
+    <div class="glass-card login-modal-content" style="padding: 40px;">
+      <h3 style="font-family: var(--font-heading); font-weight: 800; font-size: 1.5rem; margin-bottom: 8px;">Confirmar Canje</h3>
+      <div id="confirm-body" style="color: rgba(255,255,255,0.6); font-size: 0.95rem; line-height: 1.5; margin-bottom: 24px;"></div>
+      <div class="input-group mb-10">
+        <label style="font-size: 0.7rem; color: rgba(255,255,255,0.4); text-transform: uppercase; margin-bottom: 8px; display: block;">Número de Ticket / Factura</label>
+        <input type="text" id="invoice-number" class="premium-input" placeholder="Ej: 123456" style="width: 100%;">
       </div>
-      <div class="confirm-actions">
+      <div class="confirm-actions" style="display: flex; flex-direction: column; gap: 12px; margin-top: 32px;">
+        <button id="btn-confirm-ok" class="premium-btn">CONFIRMAR AHORA</button>
         <button id="btn-confirm-cancel" class="btn btn-ghost">Cancelar</button>
-        <button id="btn-confirm-ok" class="btn btn-danger">Confirmar</button>
       </div>
     </div>
   </div>
