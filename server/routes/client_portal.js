@@ -5,6 +5,8 @@ const { authenticateToken, authorizeRole } = require('../middleware/auth');
 const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
 const bcrypt = require('bcryptjs');
+const { Resend } = require('resend');
+const resend = new Resend(process.env.RESEND_API_KEY || 're_dummy_fallback');
 
 const router = express.Router();
 
@@ -146,6 +148,65 @@ router.post('/assign', authenticateToken, authorizeRole('client'), async (req, r
         }
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+/**
+ * POST /api/client-portal/send-email
+ */
+router.post('/send-email', authenticateToken, authorizeRole('client'), async (req, res) => {
+    const db = getDB();
+    const { voucher_id } = req.body;
+    const companyId = req.user.company_id;
+
+    try {
+        const { rows } = await db.query('SELECT * FROM vouchers WHERE id = $1 AND client_id = $2', [voucher_id, companyId]);
+        const voucher = rows[0];
+
+        if (!voucher) return res.status(404).json({ success: false, error: 'Vale no encontrado o no pertenece a esta empresa' });
+        
+        let recipient_email = voucher.recipient_contact;
+        if (!recipient_email || !recipient_email.includes('@')) {
+            return res.status(400).json({ success: false, error: 'El contacto registrado no es un correo electrónico válido' });
+        }
+
+        if (!process.env.RESEND_API_KEY) {
+            console.warn('RESEND_API_KEY no configurada. Simulando envío para desarrollo.');
+            // Fallback for development if no key is provided
+            return res.json({ success: true, dummy: true, message: 'Simulado (Falta API Key)' });
+        }
+
+        const publicLink = `https://${req.get('host')}/vale.html?id=${voucher.id}`;
+
+        const htmlTemplate = `
+        <div style="font-family: 'Inter', sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; background-color: #f9f9f9; border-radius: 12px;">
+            <div style="background-color: #1a1a25; padding: 40px; border-radius: 16px; text-align: center; color: white;">
+                <h1 style="color: #FF3D00; margin-bottom: 5px;">¡Hola, ${voucher.recipient_name || 'Empleado'}!</h1>
+                <p style="color: #aaa; margin-bottom: 30px;">Has recibido un vale de consumo de <strong>${voucher.issuing_company_name}</strong></p>
+                
+                <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; margin-bottom: 30px;">
+                    <p style="text-transform: uppercase; font-size: 12px; color: #888; margin: 0 0 5px 0;">Saldo Disponible</p>
+                    <h2 style="font-size: 40px; margin: 0; color: #4caf50;">$${parseFloat(voucher.current_value).toFixed(2)}</h2>
+                </div>
+                
+                <a href="${publicLink}" style="display: inline-block; background: linear-gradient(135deg, #FF3D00, #D50000); color: white; padding: 15px 30px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px;">ABRIR MI VALE Y VER QR</a>
+                
+                <p style="color: #666; font-size: 12px; margin-top: 30px;">Válido hasta: ${new Date(voucher.expiry_date).toLocaleDateString()}</p>
+            </div>
+        </div>
+        `;
+
+        const data = await resend.emails.send({
+            from: 'QR Pass <onboarding@resend.dev>', // You can change this to your verified domain later
+            to: [recipient_email],
+            subject: `Tu vale de consumo de ${voucher.issuing_company_name} por $${parseFloat(voucher.initial_value).toFixed(2)}`,
+            html: htmlTemplate
+        });
+
+        res.json({ success: true, data });
+    } catch (err) {
+        console.error('Error enviando email con Resend:', err);
+        res.status(500).json({ success: false, error: err.message || 'Error al enviar el correo' });
     }
 });
 

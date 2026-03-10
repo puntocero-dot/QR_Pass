@@ -39,6 +39,7 @@ app.use('/api/vendor', require('./routes/vendor'));
 app.use('/api/clients', require('./routes/clients'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/client-portal', require('./routes/client_portal'));
+app.use('/api/public', require('./routes/public'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {

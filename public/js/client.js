@@ -165,18 +165,41 @@
         $(`#${id}`).classList.add('hidden');
     };
 
-    window.shareVoucher = (id, type) => {
+    window.shareVoucher = async (id, type) => {
         const v = state.vouchers.find(v => v.id === id);
         if (!v) return;
 
-        const message = `Hola ${v.recipient_name || ''}, aquí tienes tu vale de consumo por $${Number(v.initial_value).toFixed(2)}. Saldo: $${Number(v.current_value).toFixed(2)}. Presenta este código QR para canjearlo.`;
+        const publicLink = `${window.location.protocol}//${window.location.host}/vale.html?id=${id}`;
         
         if (type === 'wa') {
+            const message = `Hola ${v.recipient_name || ''}, aquí tienes tu vale de consumo por $${Number(v.initial_value).toFixed(2)} de ${v.issuing_company_name}.\n\nÁbrelo y mira tu saldo en vivo aquí: ${publicLink}`;
             const url = `https://wa.me/${v.recipient_contact.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
             window.open(url, '_blank');
         } else {
-            const url = `mailto:${v.recipient_contact}?subject=Tu Vale QR&body=${encodeURIComponent(message)}`;
-            window.location.href = url;
+            // Send email using backend (which uses Resend)
+            try {
+                const btn = document.activeElement;
+                const originalText = btn ? btn.textContent : '';
+                if (btn) btn.textContent = 'Enviando...';
+
+                const res = await fetch('/api/client-portal/send-email', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${state.token}`
+                    },
+                    body: JSON.stringify({ voucher_id: id })
+                }).then(r => r.json());
+
+                if (res.success) {
+                    alert('Correo enviado con éxito (vía Resend)');
+                } else {
+                    alert('Error enviando correo: ' + res.error);
+                }
+                if (btn) btn.textContent = originalText;
+            } catch (err) {
+                alert('Error de conexión al enviar email');
+            }
         }
     };
 
