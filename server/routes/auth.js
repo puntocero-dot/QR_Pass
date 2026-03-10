@@ -20,11 +20,13 @@ router.post('/login', async (req, res) => {
         });
     }
 
+const bcrypt = require('bcryptjs');
+
     try {
         const { rows } = await db.query('SELECT * FROM users WHERE username = $1', [username]);
         const user = rows[0];
 
-        if (!user || user.password !== password) {
+        if (!user || !(await bcrypt.compare(password, user.password))) {
             return res.status(401).json({
                 success: false,
                 error: 'Credenciales incorrectas'

@@ -3,350 +3,194 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="description" content="Sistema de Canje de Vales — Restaurantes El Salvador">
-  <meta name="theme-color" content="#C62828">
-  <meta http-equiv="Content-Security-Policy"
-    content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://web-production-c8dbf.up.railway.app https://cdn.jsdelivr.net;">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Restaurantes — Canje de Vales</title>
-  <link rel="manifest" href="/manifest.json">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Portal de Gestión de Vales Digitales — Restaurantes SV">
+  <title>Restaurantes — Gestión de Vales Digitales</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
-    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/style.css">
   <style>
-    /* ── Landing Page Styles ─────────────────── */
-    .landing-container {
+    :root {
+      --accent: #FF3D00;
+      --accent-dark: #D50000;
+      --glass: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.1);
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: #0a0a0a;
+      color: white;
+      overflow-x: hidden;
+    }
+
+    h1, h2, h3 { font-family: 'Outfit', sans-serif; }
+
+    .landing-wrapper {
+      position: relative;
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: var(--space-xl);
-      background: radial-gradient(circle at top right, #C62828, #B71C1C, #1a1a1a);
-      position: relative;
-      overflow: hidden;
+      background: radial-gradient(circle at 80% 20%, rgba(255, 61, 0, 0.15) 0%, transparent 40%),
+                  radial-gradient(circle at 20% 80%, rgba(213, 0, 0, 0.1) 0%, transparent 40%);
+    }
+
+    .hero-section {
+      padding: 120px 20px 80px;
       text-align: center;
+      max-width: 1000px;
+      margin: 0 auto;
     }
 
-    .landing-container::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-      opacity: 0.5;
-    }
-
-    .landing-hero {
-      position: relative;
-      z-index: 2;
-      max-width: 600px;
-      animation: cardSlideUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
-    }
-
-    .landing-logo {
-      font-size: 5rem;
-      margin-bottom: var(--space-md);
-      filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.2));
-      display: block;
-    }
-
-    .landing-title {
-      font-size: clamp(2.5rem, 8vw, 4rem);
-      font-weight: 900;
-      color: white;
-      line-height: 1.1;
-      margin-bottom: var(--space-sm);
-      letter-spacing: -0.04em;
-      text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    }
-
-    .landing-subtitle {
-      font-size: 1.25rem;
-      color: rgba(255, 255, 255, 0.8);
-      margin-bottom: var(--space-xl);
-      font-weight: 500;
-    }
-
-    .landing-actions {
-      display: flex;
-      gap: var(--space-md);
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-
-    .btn-glass {
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      color: white;
-      padding: 16px 32px;
-      border-radius: var(--radius-full);
-      font-weight: 700;
-      font-size: 1.1rem;
-      transition: all 0.3s ease;
-      cursor: pointer;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-    }
-
-    .btn-glass:hover {
-      background: rgba(255, 255, 255, 0.2);
-      transform: translateY(-4px);
-      border-color: rgba(255, 255, 255, 0.4);
-    }
-
-    .btn-glass.primary {
-      background: white;
-      color: var(--red-700);
-    }
-
-    .btn-glass.primary:hover {
-      background: #fff;
-      box-shadow: 0 12px 40px rgba(255, 255, 255, 0.3);
-    }
-
-    .landing-footer {
-      position: absolute;
-      bottom: var(--space-xl);
-      color: rgba(255, 255, 255, 0.4);
+    .badge {
+      display: inline-block;
+      padding: 6px 16px;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 100px;
       font-size: 0.85rem;
+      font-weight: 600;
       letter-spacing: 0.1em;
       text-transform: uppercase;
-      font-weight: 600;
+      margin-bottom: 24px;
+      color: var(--accent);
     }
 
-    .nav-bar {
-      display: flex;
-      justify-content: space-around;
-      background: white;
-      padding: var(--space-sm);
-      border-top: 1px solid var(--gray-200);
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      z-index: 100;
-      box-shadow: 0 -4px 12px rgba(0,0,0,0.05);
-    }
-
-    .nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      font-size: 0.75rem;
-      color: var(--gray-500);
-      background: none;
-      border: none;
-      padding: 8px;
-    }
-
-    .nav-item.active {
-      color: var(--red-600);
-    }
-
-    .nav-item svg {
-      width: 24px;
-      height: 24px;
-    }
-
-    .stats-mini {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 15px;
-      margin-bottom: 20px;
-    }
-    .stat-box {
-      background: white;
-      padding: 15px;
-      border-radius: 12px;
-      text-align: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
-    .stat-box span {
-      display: block;
-      font-size: 1.5rem;
+    .hero-title {
+      font-size: clamp(3rem, 10vw, 5.5rem);
       font-weight: 800;
-      color: var(--red-600);
+      line-height: 1;
+      margin-bottom: 24px;
+      letter-spacing: -0.04em;
     }
-    .stat-box label {
-      font-size: 0.8rem;
-      color: var(--gray-500);
-      text-transform: uppercase;
+
+    .hero-title span {
+      background: linear-gradient(to bottom, #fff 40%, rgba(255,255,255,0.6));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
+
+    .hero-subtitle {
+      font-size: 1.25rem;
+      color: rgba(255, 255, 255, 0.7);
+      max-width: 600px;
+      margin: 0 auto 48px;
+      line-height: 1.6;
+    }
+
+    .portal-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 32px;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    .portal-card {
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      padding: 48px 32px;
+      border-radius: 32px;
+      transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+      text-decoration: none;
+      color: white;
+      text-align: left;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .portal-card:hover {
+      transform: translateY(-8px);
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 61, 0, 0.3);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    }
+
+    .portal-card::after {
+      content: '→';
+      position: absolute;
+      bottom: 32px;
+      right: 32px;
+      font-size: 1.5rem;
+      opacity: 0.3;
+      transition: transform 0.3s ease;
+    }
+
+    .portal-card:hover::after {
+      transform: translateX(8px);
+      opacity: 1;
+      color: var(--accent);
+    }
+
+    .portal-icon {
+      font-size: 2.5rem;
+      margin-bottom: 24px;
+      display: block;
+    }
+
+    .portal-name {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .portal-desc {
+      font-size: 0.95rem;
+      color: rgba(255, 255, 255, 0.5);
+      line-height: 1.5;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 80px 20px 40px;
+      color: rgba(255, 255, 255, 0.3);
+      font-size: 0.85rem;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .animate { animation: fadeIn 0.8s ease forwards; }
+    .delay-1 { animation-delay: 0.2s; }
+    .delay-2 { animation-delay: 0.4s; }
   </style>
 </head>
 
 <body>
-  <!-- ═══ App Shell ═══ -->
-  <div id="app">
+  <div class="landing-wrapper">
+    <section class="hero-section">
+      <div class="badge animate">Digital Voucher System</div>
+      <h1 class="hero-title animate delay-1"><span>Simplificando</span><br> tus Beneficios.</h1>
+      <p class="hero-subtitle animate delay-2">
+        La plataforma líder en gestión y canje de vales digitales para restaurantes en El Salvador. Rápido, seguro y sin complicaciones.
+      </p>
 
-    <!-- ─── Header ─── -->
-    <header id="app-header" class="header hidden">
-      <div class="header-left">
-        <div class="logo">
-          <span class="logo-icon">🐔</span>
-          <span class="logo-text">Restaurantes</span>
-        </div>
-      </div>
-      <div class="header-center">
-        <span id="restaurant-badge" class="restaurant-badge">
-          <span id="restaurant-name">—</span>
-        </span>
-      </div>
-      <div class="header-right">
-        <button id="btn-logout-header" class="btn-icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-        </button>
-      </div>
-    </header>
+      <div class="portal-grid">
+        <a href="/app.html" class="portal-card animate delay-1" style="animation-duration: 1s;">
+          <span class="portal-icon">🏦</span>
+          <div class="portal-name">Portal de Negocios</div>
+          <p class="portal-desc">Acceso para Administradores, Vendedores y Cajeros. Gestiona y canjea vales en tiempo real.</p>
+        </a>
 
-    <!-- ─── Landing View ─── -->
-    <section id="view-landing" class="view active">
-      <div class="landing-container">
-        <div class="landing-hero">
-          <span class="landing-logo">🐔</span>
-          <h1 class="landing-title">Restaurantes</h1>
-          <p class="landing-subtitle">Portal Digital para el Canje de Vales.</p>
-          <div class="landing-actions">
-            <button id="btn-start-login" class="btn-glass primary">Entrar al Sistema</button>
-          </div>
-        </div>
-        <div class="landing-footer">© 2026 Restaurantes — SV</div>
+        <a href="/client.html" class="portal-card animate delay-2" style="animation-duration: 1.2s;">
+          <span class="portal-icon">👤</span>
+          <div class="portal-name">Portal de Clientes</div>
+          <p class="portal-desc">Acceso para empresas clientes. Visualiza tus vales, gestiona saldos y distribuye QRs a empleados.</p>
+        </a>
       </div>
     </section>
 
-    <!-- ─── Login View ─── -->
-    <section id="view-login" class="view">
-      <div class="login-container">
-        <div class="login-hero">
-          <h1>Restaurantes</h1>
-          <p>Sistema de Canje</p>
-        </div>
-        <form id="login-form">
-          <div class="input-group">
-            <label>Usuario</label>
-            <input type="text" id="login-user" required>
-          </div>
-          <div class="input-group">
-            <label>Contraseña</label>
-            <input type="password" id="login-pass" required>
-          </div>
-          <button type="submit" id="btn-login" class="btn btn-primary btn-block">Iniciar Sesión</button>
-          <p id="login-error" class="error-msg hidden"></p>
-        </form>
-      </div>
-    </section>
-
-    <!-- ─── Scanner View ─── -->
-    <section id="view-scanner" class="view">
-      <div class="scanner-container">
-        <h2>Escanear Vale</h2>
-        <div id="scanner-box" class="scanner-box">
-          <div id="qr-reader" class="qr-reader"></div>
-          <div class="scanner-overlay">
-            <div class="scanner-corners"></div>
-          </div>
-        </div>
-        <div class="manual-input-group mt-20">
-          <input type="text" id="manual-code" placeholder="O ingrese código manual...">
-          <button id="btn-manual-validate" class="btn btn-secondary">Validar</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- ─── Cuadre View ─── -->
-    <section id="view-cuadre" class="view">
-      <div class="container py-20">
-        <h2>Mi Cuadre Diario</h2>
-        <div class="stats-mini">
-          <div class="stat-box">
-            <span id="cuadre-count">0</span>
-            <label>Canjes</label>
-          </div>
-          <div class="stat-box">
-            <span id="cuadre-total">$0.00</span>
-            <label>Total</label>
-          </div>
-        </div>
-        <div id="cuadre-history" class="history-list">
-          <!-- Items injected here -->
-        </div>
-      </div>
-    </section>
-
-    <!-- ─── Voucher Detail View ─── -->
-    <section id="view-voucher" class="view">
-      <div class="voucher-container">
-        <div class="card voucher-card">
-          <h3 id="voucher-company">Empresa</h3>
-          <div class="stat-block">
-            <label>Saldo</label>
-            <h2 id="voucher-balance">$0.00</h2>
-          </div>
-          <p>Vence: <span id="voucher-expiry">—</span></p>
-        </div>
-        <div class="redeem-section mt-20">
-          <div class="input-group">
-            <label>Monto a Canjear</label>
-            <input type="number" id="redeem-amount" step="0.01" class="input-lg">
-          </div>
-          <button id="btn-redeem" class="btn btn-danger btn-block btn-lg">CANJEAR</button>
-          <button id="btn-cancel-voucher" class="btn btn-ghost btn-block">Volver</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- ─── Result View ─── -->
-    <section id="view-result" class="view">
-      <div class="result-container text-center">
-        <div class="result-icon success">✓</div>
-        <h2>¡Canje Exitoso!</h2>
-        <div class="card my-20">
-          <p>Monto: <strong id="result-amount">$0.00</strong></p>
-          <p>Ticket: <strong id="result-invoice">—</strong></p>
-        </div>
-        <button id="btn-new-scan" class="btn btn-primary btn-block">Nuevo Escaneo</button>
-      </div>
-    </section>
-
-    <!-- Bottom Nav (Hidden by default) -->
-    <nav id="bottom-nav" class="nav-bar hidden">
-      <button class="nav-item active" data-view="scanner">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-        <span>Escanear</span>
-      </button>
-      <button class="nav-item" data-view="cuadre">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-        <span>Cuadre</span>
-      </button>
-    </nav>
-
+    <footer class="footer">
+      © 2026 RESTAURANTES SV — TECNOLOGÍA AL SERVICIO DEL SABOR
+    </footer>
   </div>
-
-  <!-- Confirm Modal -->
-  <div id="confirm-modal" class="confirm-overlay hidden">
-    <div class="confirm-dialog">
-      <h3>Confirmar Canje</h3>
-      <div id="confirm-body" class="confirm-body py-10"></div>
-      <div class="form-group mb-10">
-        <label>Número de Ticket</label>
-        <input type="text" id="invoice-number" placeholder="Ej: 12345">
-      </div>
-      <div class="confirm-actions">
-        <button id="btn-confirm-cancel" class="btn btn-ghost">Cancelar</button>
-        <button id="btn-confirm-ok" class="btn btn-danger">Confirmar</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="toast-container" class="toast-container"></div>
-
-  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   <script src="/js/app.js"></script>
 </body>
 

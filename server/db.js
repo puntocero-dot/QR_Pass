@@ -101,6 +101,8 @@ function getDB() {
   return pool;
 }
 
+const bcrypt = require('bcryptjs');
+
 async function seedDemoData() {
   const db = getDB();
   const { rows } = await db.query('SELECT COUNT(*) FROM users');
@@ -108,15 +110,18 @@ async function seedDemoData() {
   if (parseInt(rows[0].count) === 0) {
     console.log('🌱 Seeding initial demo data...');
     
+    const adminPass = await bcrypt.hash(process.env.ADMIN_PASS || 'admin2024', 10);
+    const vendorPass = await bcrypt.hash(process.env.VENDOR_PASS || 'vendedor2024', 10);
+
     await db.query(`
       INSERT INTO users (id, username, password, role, full_name, related_id)
       VALUES ($1, $2, $3, $4, $5, $6)
-    `, [uuidv4(), 'admin', process.env.ADMIN_PASS || 'admin2024', 'admin', 'Super Administrador', '']);
+    `, [uuidv4(), 'admin', adminPass, 'admin', 'Super Administrador', '']);
     
     await db.query(`
       INSERT INTO users (id, username, password, role, full_name, related_id)
       VALUES ($1, $2, $3, $4, $5, $6)
-    `, [uuidv4(), 'vendedor', process.env.VENDOR_PASS || 'vendedor2024', 'vendor', 'Vendedor Demo', 'VEND-001']);
+    `, [uuidv4(), 'vendedor', vendorPass, 'vendor', 'Vendedor Demo', 'VEND-001']);
 
     console.log('✅ Demo users created');
   }

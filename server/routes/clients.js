@@ -3,6 +3,7 @@ const { v4: uuidv4 } = require('uuid');
 const { getDB } = require('../db');
 const { authMiddleware } = require('../middleware/auth');
 const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
 
 const router = express.Router();
 
@@ -71,11 +72,13 @@ router.post('/', async (req, res) => {
     }
 
     const id = uuidv4();
+    const defaultPassword = tax_id || '123456';
 
     try {
+        const hashedPassword = await bcrypt.hash(defaultPassword, 10);
         await db.query(`
-            INSERT INTO clients (id, name, trade_name, tax_id, email, phone, address, contact_person, notes, access_token, created_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+            INSERT INTO clients (id, name, trade_name, tax_id, email, phone, address, contact_person, notes, access_token, password, created_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
         `, [
             id,
             name.trim(),
@@ -87,6 +90,7 @@ router.post('/', async (req, res) => {
             contact_person || '',
             notes || '',
             crypto.randomBytes(16).toString('hex'),
+            hashedPassword,
             new Date().toISOString()
         ]);
 

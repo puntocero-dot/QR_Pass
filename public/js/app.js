@@ -10,12 +10,26 @@
     };
 
     function init() {
+        const path = window.location.pathname;
+        const isLanding = path === '/' || path === '/index.html';
+        const isApp = path.includes('app.html');
+
         if (state.token && state.user) {
             if (state.user.role === 'admin' || state.user.role === 'vendor') {
                 location.href = '/admin.html';
                 return;
             }
+            if (isLanding) {
+                location.href = '/app.html';
+                return;
+            }
             showApp();
+        } else {
+            if (isApp) {
+                location.href = '/index.html';
+                return;
+            }
+            switchView('login');
         }
         bindEvents();
     }

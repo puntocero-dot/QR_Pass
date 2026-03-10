@@ -2,6 +2,7 @@ const express = require('express');
 const { getDB } = require('../db');
 const { v4: uuidv4 } = require('uuid');
 const { authenticateToken, authorizeRole } = require('../middleware/auth');
+const bcrypt = require('bcryptjs');
 
 const router = express.Router();
 
@@ -107,7 +108,8 @@ router.post('/users', authenticateToken, authorizeRole('admin', 'vendor'), async
             
             if (password && password !== '********') {
                 query += ', password = $' + (params.length + 1);
-                params.push(password);
+                const hashedPassword = await bcrypt.hash(password, 10);
+                params.push(hashedPassword);
             }
             
             query += ' WHERE id = $' + (params.length + 1);
@@ -116,10 +118,11 @@ router.post('/users', authenticateToken, authorizeRole('admin', 'vendor'), async
             await db.query(query, params);
         } else {
             // Create
+            const hashedPassword = await bcrypt.hash(password, 10);
             await db.query(`
                 INSERT INTO users (id, username, password, role, full_name, related_id, created_at)
                 VALUES ($1, $2, $3, $4, $5, $6, $7)
-            `, [uuidv4(), username, password, role, full_name, related_id, new Date().toISOString()]);
+            `, [uuidv4(), username, hashedPassword, role, full_name, related_id, new Date().toISOString()]);
         }
         res.json({ success: true });
     } catch (err) {

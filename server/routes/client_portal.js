@@ -4,6 +4,7 @@ const { generateQRPayload } = require('../utils/crypto');
 const { authenticateToken, authorizeRole } = require('../middleware/auth');
 const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
+const bcrypt = require('bcryptjs');
 
 const router = express.Router();
 
@@ -23,18 +24,18 @@ router.post('/login', async (req, res) => {
         const { rows } = await db.query(`
             SELECT * FROM clients 
             WHERE (tax_id = $1 OR name = $2) 
-            AND password = $3 
             AND is_active = 1
-        `, [identifier, identifier, password]);
+        `, [identifier, identifier]);
         
         const client = rows[0];
 
-        if (!client) {
+        if (!client || !(await bcrypt.compare(password, client.password))) {
             return res.status(401).json({ success: false, error: 'Credenciales inválidas o cuenta inactiva' });
         }
 
         const token = jwt.sign({
             id: client.id,
+            company_id: client.id,
             name: client.name,
             role: 'client'
         }, JWT_SECRET, { expiresIn: '24h' });
@@ -44,6 +45,7 @@ router.post('/login', async (req, res) => {
             token,
             client: {
                 id: client.id,
+                company_id: client.id,
                 name: client.name,
                 tax_id: client.tax_id
             }
