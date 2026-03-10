@@ -1426,6 +1426,7 @@ textarea {
     padding: 16px;
     border-bottom: 1px solid var(--border-subtle);
     font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.9);
 }
 
 .badge {
