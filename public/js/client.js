@@ -26,9 +26,8 @@
         const logoutBtn = $('#btn-logout');
         if (logoutBtn) {
             logoutBtn.addEventListener('click', () => {
-                localStorage.removeItem('company_portal_token');
-                localStorage.removeItem('company_portal_client');
-                location.reload();
+                localStorage.clear();
+                location.href = '/index.html';
             });
         }
 
@@ -56,7 +55,6 @@
 
     async function showPortal() {
         $('#loader-view').classList.add('hidden');
-        $('#login-section').classList.add('hidden');
         $('#main-view').classList.remove('hidden');
         $('#client-name').textContent = state.client.full_name || state.client.company_name;
         loadVouchers();
