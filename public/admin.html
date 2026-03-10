@@ -18,7 +18,7 @@
         .nav-item {
             background: transparent;
             border: none;
-            color: rgba(255, 255, 255, 0.5);
+            color: rgba(255, 255, 255, 0.85) !important;
             padding: 12px 16px;
             border-radius: 12px;
             width: 100%;
@@ -30,12 +30,12 @@
             cursor: pointer;
         }
         .nav-item:hover {
-            background: rgba(255, 255, 255, 0.05);
-            color: white;
+            background: rgba(255, 255, 255, 0.1) !important;
+            color: #ffffff !important;
         }
         .nav-item.active {
-            background: var(--premium-accent);
-            color: white;
+            background: var(--premium-accent) !important;
+            color: #ffffff !important;
             box-shadow: 0 8px 20px rgba(198, 40, 40, 0.3);
         }
         .stat-card {
@@ -346,6 +346,20 @@
             <div style="display: flex; flex-direction: column; gap: 12px;">
                 <button id="btn-download-qr" class="premium-btn">Descargar QR</button>
                 <button type="button" class="btn btn-ghost btn-close-modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Delete Modal -->
+    <div id="modal-confirm-delete" class="modal-overlay hidden">
+        <div class="glass-card login-modal-content text-center" style="padding: 40px; max-width: 400px;">
+            <div class="modal-header" style="margin-bottom: 24px; justify-content: center;">
+                <h2 style="font-family: var(--font-heading); font-weight: 800; font-size: 1.5rem; color: var(--error);">⚠️ Confirmar</h2>
+            </div>
+            <p style="color: rgba(255,255,255,0.7); font-size: 0.95rem; margin-bottom: 32px;">¿Está seguro de eliminar este usuario? Esta acción no se puede deshacer.</p>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <button id="btn-confirm-delete" class="premium-btn" style="background: linear-gradient(135deg, var(--error), #c62828);">Eliminar Usuario</button>
+                <button type="button" class="btn btn-ghost btn-close-modal">Cancelar</button>
             </div>
         </div>
     </div>

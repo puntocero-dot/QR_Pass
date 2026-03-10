@@ -446,16 +446,35 @@
         $('#modal-user').classList.remove('hidden');
     };
 
-    window.deleteUser = async (id) => {
-        if (!confirm('¿Está seguro de eliminar este usuario?')) return;
-        try {
-            const res = await fetch(`/api/admin/users/${id}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${state.token}` }
-            }).then(r => r.json());
-            if (res.success) loadUsers();
-            else alert(res.error);
-        } catch (e) { alert('Error eliminando usuario'); }
+    window.deleteUser = (id) => {
+        const modal = $('#modal-confirm-delete');
+        const confirmBtn = $('#btn-confirm-delete');
+        modal.classList.remove('hidden');
+        
+        // Remove previous listener to avoid multiple deletes
+        const newBtn = confirmBtn.cloneNode(true);
+        confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
+        
+        newBtn.addEventListener('click', async () => {
+            const originalText = newBtn.textContent;
+            newBtn.textContent = 'Eliminando...';
+            newBtn.disabled = true;
+            try {
+                const res = await fetch(`/api/admin/users/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${state.token}` }
+                }).then(r => r.json());
+                
+                if (res.success) {
+                    modal.classList.add('hidden');
+                    loadUsers();
+                } else alert(res.error);
+            } catch (e) { alert('Error eliminando usuario'); }
+            finally {
+                newBtn.textContent = originalText;
+                newBtn.disabled = false;
+            }
+        });
     };
 
     init();

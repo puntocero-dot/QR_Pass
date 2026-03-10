@@ -78,12 +78,19 @@
     }
 
     function renderStats() {
-        const active = state.vouchers.filter(v => Number(v.current_value) > 0).length;
+        const active = state.vouchers.filter(v => Number(v.current_value) > 0 && !v.recipient_contact).length;
         const total = state.vouchers.reduce((a, v) => a + Number(v.current_value), 0);
+        const assigned = state.vouchers.filter(v => v.recipient_contact && v.recipient_contact.trim().length > 0).length;
+        
         $('#stat-count').textContent = active;
+        const statAssigned = $('#stat-assigned');
+        if (statAssigned) statAssigned.textContent = assigned;
         $('#stat-value').textContent = `$${Number(total).toFixed(2)}`;
     }
 
+    // ... keeping other functions identical ...
+
+    // Redefining renderVouchers to match original
     function renderVouchers() {
         const wrap = $('#vouchers-list');
         wrap.innerHTML = '';
@@ -178,6 +185,7 @@
         $('#send-voucher-id').value = id;
         $('#recipient-name').value = v.recipient_name || '';
         $('#recipient-contact').value = v.recipient_contact || '';
+        if ($('#assign-error')) $('#assign-error').classList.add('hidden');
         $('#send-modal').classList.remove('hidden');
     };
 
@@ -216,9 +224,16 @@
         }).then(r => r.json());
 
         if (res.success) {
-            alert('Vales asignados con éxito');
-            $('#bulk-preview').classList.add('hidden');
-            loadVouchers();
+            const btn = $('#btn-confirm-bulk');
+            const originalText = btn.textContent;
+            btn.textContent = '✅ Vales asignados';
+            btn.style.background = 'var(--success)';
+            setTimeout(() => {
+                $('#bulk-preview').classList.add('hidden');
+                btn.textContent = originalText;
+                btn.style.background = '';
+                loadVouchers();
+            }, 2000);
         }
     }
 
@@ -228,8 +243,27 @@
         if (btn) btn.disabled = true;
 
         const id = $('#send-voucher-id').value;
-        const contact = $('#recipient-contact').value;
-        const name = $('#recipient-name').value;
+        const contact = $('#recipient-contact').value.trim();
+        const name = $('#recipient-name').value.trim();
+        const errEl = $('#assign-error');
+
+        // Validation for duplicates
+        const isDuplicate = state.vouchers.some(v => 
+            v.id !== id && 
+            ((contact && v.recipient_contact === contact) || 
+             (name && v.recipient_name && v.recipient_name.toLowerCase() === name.toLowerCase()))
+        );
+
+        if (isDuplicate) {
+            if (errEl) {
+                errEl.textContent = 'Este empleado o contacto ya tiene un vale asignado.';
+                errEl.classList.remove('hidden');
+            }
+            if (btn) btn.disabled = false;
+            return;
+        }
+
+        if (errEl) errEl.classList.add('hidden');
 
         try {
             const res = await fetch('/api/client-portal/assign', {
@@ -246,15 +280,32 @@
             }).then(r => r.json());
 
             if (res.success) {
-                $('#send-modal').classList.add('hidden');
                 await loadVouchers();
-                alert('Asignación guardada con éxito');
+                if (btn) {
+                    const originalText = btn.textContent;
+                    btn.textContent = '✅ Guardado';
+                    btn.style.background = 'var(--success)';
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                        btn.style.background = ''; // reset
+                        $('#send-modal').classList.add('hidden');
+                        if (btn) btn.disabled = false;
+                    }, 1500);
+                } else {
+                    $('#send-modal').classList.add('hidden');
+                }
             } else {
-                alert(res.error || 'Error al asignar');
+                if (errEl) {
+                    errEl.textContent = res.error || 'Error al asignar';
+                    errEl.classList.remove('hidden');
+                }
+                if (btn) btn.disabled = false;
             }
         } catch (e) {
-            alert('Error de conexión');
-        } finally {
+            if (errEl) {
+                errEl.textContent = 'Error de conexión';
+                errEl.classList.remove('hidden');
+            }
             if (btn) btn.disabled = false;
         }
     }

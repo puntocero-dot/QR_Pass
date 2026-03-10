@@ -391,6 +391,10 @@
                     <span class="stat-value" id="stat-count">0</span>
                 </div>
                 <div class="stat-card glass-card">
+                    <span class="stat-label">Vales Repartidos</span>
+                    <span class="stat-value" id="stat-assigned">0</span>
+                </div>
+                <div class="stat-card glass-card">
                     <span class="stat-label">Saldo Total</span>
                     <span class="stat-value" id="stat-value">$0.00</span>
                 </div>
@@ -449,6 +453,7 @@
             <p style="color: rgba(255,255,255,0.4); font-size: 0.85rem; margin-bottom: 24px;">Identifica al empleado que usará este vale.</p>
             <form id="send-form">
                 <input type="hidden" id="send-voucher-id">
+                <div id="assign-error" class="hidden error-msg" style="margin-bottom: 16px;"></div>
                 <div class="input-group">
                     <label style="font-size: 0.75rem; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 8px; display: block;">Nombre del Empleado</label>
                     <input type="text" id="recipient-name" class="premium-input" placeholder="Ej: Juan Pérez" required style="width: 100%;">
