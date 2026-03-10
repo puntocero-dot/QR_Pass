@@ -14,6 +14,7 @@
         if (state.token && state.client) {
             showPortal();
         } else {
+            $('#loader-view').classList.add('hidden');
             $('#login-section').classList.remove('hidden');
             $('#main-view').classList.add('hidden');
         }
@@ -53,11 +54,14 @@
             }
         });
 
-        $('#btn-logout').addEventListener('click', () => {
-            localStorage.removeItem('company_portal_token');
-            localStorage.removeItem('company_portal_client');
-            location.reload();
-        });
+        const logoutBtn = $('#btn-logout');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', () => {
+                localStorage.removeItem('company_portal_token');
+                localStorage.removeItem('company_portal_client');
+                location.reload();
+            });
+        }
 
         $$('.tab-btn').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -82,6 +86,7 @@
     }
 
     async function showPortal() {
+        $('#loader-view').classList.add('hidden');
         $('#login-section').classList.add('hidden');
         $('#main-view').classList.remove('hidden');
         $('#client-name').textContent = state.client.full_name || state.client.company_name;
@@ -118,7 +123,7 @@
         
         let filtered = state.vouchers;
         if (state.currentTab === 'assigned') {
-            filtered = state.vouchers.filter(v => v.recipient_contact);
+            filtered = state.vouchers.filter(v => v.recipient_contact && v.recipient_contact.trim().length > 0);
         }
 
         if (state.vouchers.length === 0) {
@@ -171,11 +176,12 @@
         const v = state.vouchers.find(v => v.id === id);
         if (!v) return;
 
-        const qr = qrcode(0, 'M');
+        $('#qr-container').innerHTML = '';
+        const qr = qrcode(0, 'H'); // Higher error correction
         qr.addData(v.qr_payload);
         qr.make();
         
-        $('#qr-container').innerHTML = qr.createImgTag(5);
+        $('#qr-container').innerHTML = qr.createImgTag(8);
         $('#qr-value').textContent = `$${Number(v.current_value).toFixed(2)}`;
         $('#qr-modal').classList.add('active');
     };
@@ -188,7 +194,7 @@
         const v = state.vouchers.find(v => v.id === id);
         if (!v) return;
 
-        const message = `Hola ${v.recipient_name || ''}, aquí tienes tu vale de consumo por $${Number(v.initial_value).toFixed(2)}. Saldo: $${Number(v.current_value).toFixed(2)}. Presenta este código QR: ${window.location.origin}/client.html (Ingresa con tu empresa)`;
+        const message = `Hola ${v.recipient_name || ''}, aquí tienes tu vale de consumo por $${Number(v.initial_value).toFixed(2)}. Saldo: $${Number(v.current_value).toFixed(2)}. Presenta este código QR para canjearlo.`;
         
         if (type === 'wa') {
             const url = `https://wa.me/${v.recipient_contact.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
@@ -250,22 +256,38 @@
 
     async function handleSingleAssign(e) {
         e.preventDefault();
+        const btn = e.submitter || $('#btn-save-assign');
+        if (btn) btn.disabled = true;
+
         const id = $('#send-voucher-id').value;
         const contact = $('#recipient-contact').value;
         const name = $('#recipient-name').value;
 
-        const res = await fetch('/api/client-portal/assign', {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${state.token}`
-            },
-            body: JSON.stringify({ voucher_id: id, recipient_contact: contact, recipient_name: name })
-        }).then(r => r.json());
+        try {
+            const res = await fetch('/api/client-portal/assign', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${state.token}`
+                },
+                body: JSON.stringify({ 
+                    voucher_id: id, 
+                    recipient_contact: contact, 
+                    recipient_name: name 
+                })
+            }).then(r => r.json());
 
-        if (res.success) {
-            $('#send-modal').classList.remove('active');
-            loadVouchers();
+            if (res.success) {
+                $('#send-modal').classList.remove('active');
+                await loadVouchers();
+                alert('Asignación guardada con éxito');
+            } else {
+                alert(res.error || 'Error al asignar');
+            }
+        } catch (e) {
+            alert('Error de conexión');
+        } finally {
+            if (btn) btn.disabled = false;
         }
     }
 
