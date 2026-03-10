@@ -14,41 +14,63 @@ router.get('/stats', authenticateToken, authorizeRole('admin', 'vendor'), async 
     const companyId = req.user.company_id || req.user.vendor_id;
 
     try {
-        let totalVouchers, totalRedeemed;
+        let stats = {};
         
         if (isVendor) {
-            const vRes = await db.query('SELECT COUNT(*) as count FROM vouchers WHERE issuing_company_id = $1', [companyId]);
-            totalVouchers = parseInt(vRes.rows[0].count);
+            const vRes = await db.query(`
+                SELECT 
+                    COUNT(*) as total_vouchers,
+                    COUNT(*) FILTER (WHERE current_value > 0 AND expiry_date > NOW()) as active_vouchers,
+                    SUM(initial_value) as total_value,
+                    SUM(initial_value - current_value) as redeemed_value
+                FROM vouchers 
+                WHERE issuing_company_id = $1
+            `, [companyId]);
             
+            stats = {
+                total_vouchers: parseInt(vRes.rows[0].total_vouchers || 0),
+                active_vouchers: parseInt(vRes.rows[0].active_vouchers || 0),
+                total_value: parseFloat(vRes.rows[0].total_value || 0),
+                redeemed_value: parseFloat(vRes.rows[0].redeemed_value || 0)
+            };
+
             const rRes = await db.query(`
                 SELECT COUNT(*) as count 
                 FROM redemption_logs rl
                 JOIN vouchers v ON rl.voucher_id = v.id
                 WHERE v.issuing_company_id = $1
             `, [companyId]);
-            totalRedeemed = parseInt(rRes.rows[0].count);
+            stats.total_redemptions = parseInt(rRes.rows[0].count || 0);
         } else {
-            const vRes = await db.query('SELECT COUNT(*) as count FROM vouchers');
-            totalVouchers = parseInt(vRes.rows[0].count);
+            const vRes = await db.query(`
+                SELECT 
+                    COUNT(*) as total_vouchers,
+                    COUNT(*) FILTER (WHERE current_value > 0 AND expiry_date > NOW()) as active_vouchers,
+                    SUM(initial_value) as total_value,
+                    SUM(initial_value - current_value) as redeemed_value
+                FROM vouchers
+            `);
+            
+            stats = {
+                total_vouchers: parseInt(vRes.rows[0].total_vouchers || 0),
+                active_vouchers: parseInt(vRes.rows[0].active_vouchers || 0),
+                total_value: parseFloat(vRes.rows[0].total_value || 0),
+                redeemed_value: parseFloat(vRes.rows[0].redeemed_value || 0)
+            };
             
             const rRes = await db.query('SELECT COUNT(*) as count FROM redemption_logs');
-            totalRedeemed = parseInt(rRes.rows[0].count);
+            stats.total_redemptions = parseInt(rRes.rows[0].count || 0);
         }
 
         const cRes = await db.query('SELECT COUNT(*) as count FROM clients WHERE is_active = 1');
-        const activeClients = parseInt(cRes.rows[0].count);
+        stats.total_clients = parseInt(cRes.rows[0].count || 0);
         
         const uRes = await db.query('SELECT COUNT(*) as count FROM users');
-        const totalUsers = parseInt(uRes.rows[0].count);
+        stats.total_users = parseInt(uRes.rows[0].count || 0);
 
         res.json({
             success: true,
-            stats: {
-                totalVouchers,
-                totalRedeemed,
-                activeClients,
-                totalUsers
-            }
+            stats
         });
     } catch (err) {
         console.error('Stats error:', err);

@@ -97,13 +97,18 @@
             }).then(r => r.json());
             
             if (res.success) {
-                $('#stat-active-companies').textContent = res.stats.activeClients || res.stats.total_clients || '0';
-                $('#stat-total-vouchers').textContent = res.stats.total_vouchers;
-                $('#stat-active-vouchers').textContent = res.stats.active_vouchers;
-                $('#stat-total-value').textContent = `$${Number(res.stats.total_value).toFixed(2)}`;
-                $('#stat-redeemed-value').textContent = `$${Number(res.stats.redeemed_value).toFixed(2)}`;
-                const redeemedEl = $('#stat-total-redeemed');
-                if (redeemedEl) redeemedEl.textContent = res.stats.totalRedeemed || res.stats.total_redemptions || '0';
+                const s = res.stats;
+                const setP = (id, val) => {
+                    const el = $(id);
+                    if (el) el.textContent = val;
+                };
+
+                setP('#stat-active-companies', s.total_clients || '0');
+                setP('#stat-total-vouchers', s.total_vouchers || '0');
+                setP('#stat-active-vouchers', s.active_vouchers || '0');
+                setP('#stat-total-value', `$${Number(s.total_value || 0).toFixed(2)}`);
+                setP('#stat-redeemed-value', `$${Number(s.redeemed_value || 0).toFixed(2)}`);
+                setP('#stat-total-redeemed', s.total_redemptions || '0');
             }
         } catch (e) { console.error('Stats error', e); }
     }
