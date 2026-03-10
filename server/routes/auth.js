@@ -23,33 +23,70 @@ router.post('/login', async (req, res) => {
 const bcrypt = require('bcryptjs');
 
     try {
-        const { rows } = await db.query('SELECT * FROM users WHERE username = $1', [username]);
-        const user = rows[0];
+        const { rows: userRows } = await db.query('SELECT * FROM users WHERE username = $1', [username]);
+        let user = userRows[0];
+        let isClientTable = false;
 
-        if (!user || !(await bcrypt.compare(password, user.password))) {
-            return res.status(401).json({
-                success: false,
-                error: 'Credenciales incorrectas'
-            });
+        // If not in users table, try matching in clients table
+        if (!user) {
+            const { rows: clientRows } = await db.query(`
+                SELECT * FROM clients 
+                WHERE (tax_id = $1 OR name = $1) AND is_active = 1
+            `, [username]);
+            
+            if (clientRows[0]) {
+                user = clientRows[0];
+                isClientTable = true;
+            }
+        }
+
+        if (!user) {
+            return res.status(401).json({ success: false, error: 'Credenciales incorrectas' });
+        }
+
+        let isMatch = false;
+        if (user.password && user.password.startsWith('$2')) {
+            isMatch = await bcrypt.compare(password, user.password);
+        } else {
+            // Plaintext fallback for legacy unhashed passwords
+            isMatch = (password === user.password);
+            
+            // Proactively upgrade the password to bcrypt in the database if it matched
+            if (isMatch) {
+                try {
+                    const hashed = await bcrypt.hash(password, 10);
+                    if (isClientTable) {
+                        await db.query('UPDATE clients SET password = $1 WHERE id = $2', [hashed, user.id]);
+                    } else {
+                        await db.query('UPDATE users SET password = $1 WHERE id = $2', [hashed, user.id]);
+                    }
+                } catch (updateErr) {
+                    console.error('Failed to upgrade password hash:', updateErr);
+                }
+            }
+        }
+
+        if (!isMatch) {
+            return res.status(401).json({ success: false, error: 'Credenciales incorrectas' });
         }
 
         const payload = { 
             id: user.id,
-            username: user.username,
-            role: user.role,
-            full_name: user.full_name
+            username: isClientTable ? (user.tax_id || user.name) : user.username,
+            role: isClientTable ? 'client' : user.role,
+            full_name: isClientTable ? user.name : user.full_name
         };
 
-        if (user.role === 'vendor') {
+        if (payload.role === 'vendor') {
             payload.vendor_id = user.related_id;
             payload.company_id = user.related_id;
             payload.company_name = user.full_name; 
-        } else if (user.role === 'admin') {
+        } else if (payload.role === 'admin') {
             payload.company_id = 'ADMIN';
             payload.company_name = 'Restaurantes Admin';
-        } else if (user.role === 'client') {
-            payload.company_id = user.related_id;
-            payload.company_name = user.full_name;
+        } else if (payload.role === 'client') {
+            payload.company_id = isClientTable ? user.id : user.related_id;
+            payload.company_name = isClientTable ? user.name : user.full_name;
         } else {
             payload.cashier_id = user.id;
             payload.restaurant_id = user.related_id;
